@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 
 interface IProps extends React.ComponentProps<typeof Button> {
   icon?: LucideIcon;

@@ -1,19 +1,21 @@
+"use client";
+
 import { useFormContext } from "react-hook-form";
 
 import { cn } from "@/lib/utils";
 
-import AppFormLabel from "../common/app-form-label";
-import AppSelect from "../common/app-select";
+import AppFormLabel from "../common/form/app-form-label";
 import { FormField, FormItem, FormMessage } from "../ui/form";
+import { Input } from "../ui/input";
 
-interface IProps extends React.ComponentProps<typeof AppSelect> {
+interface IProps extends React.ComponentProps<typeof Input> {
   label?: string;
   name: string;
   required?: boolean;
   layout?: "horizontal" | "vertical";
 }
 
-const FormSelect = (props: IProps) => {
+const FormInput = (props: IProps) => {
   const { label, name, required, layout = "vertical", ...rest } = props;
   const { control } = useFormContext();
 
@@ -30,7 +32,7 @@ const FormSelect = (props: IProps) => {
             )}
           >
             {label && <AppFormLabel label={label} required={required} layout={layout} />}
-            <AppSelect {...field} {...rest} />
+            <Input {...field} {...rest} />
             <FormMessage />
           </div>
         </FormItem>
@@ -39,4 +41,4 @@ const FormSelect = (props: IProps) => {
   );
 };
 
-export default FormSelect;
+export default FormInput;

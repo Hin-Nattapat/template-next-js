@@ -3,11 +3,12 @@
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import AppButton from "@/components/common/app-button";
-import FormInput from "@/components/form/form-input";
-import FormInputArea from "@/components/form/form-input-area";
-import FormSelect from "@/components/form/form-select";
+import AppButton from "@/components/common/buttons/app-button";
+import FormInput from "@/components/form-controls/form-input";
+import FormInputArea from "@/components/form-controls/form-input-area";
+import FormSelect from "@/components/form-controls/form-select";
 import { Form } from "@/components/ui/form";
+import { useDialog } from "@/hooks/use-dialog";
 
 const options = [
   { value: "1", label: "Option 1" },
@@ -16,13 +17,16 @@ const options = [
 ];
 export default function Home() {
   const form = useForm();
-
+  const dialog = useDialog();
   const handleToast = () => {
     toast.success("Product added successfully");
-    // toast.error("Product added failed");
-    // toast.info("Product added info");
-    // toast.warning("Product added warning");
-    // toast.loading("Product added loading");
+  };
+
+  const handleAddProduct = () => {
+    dialog.success({
+      title: "Product added successfully",
+      message: "Product added successfully",
+    });
   };
 
   return (
@@ -30,8 +34,12 @@ export default function Home() {
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center gap-2 bg-white px-16 py-32 sm:items-start dark:bg-black">
         <Form {...form}>
           <AppButton variant={"default"} text="Add Product" onClick={handleToast} />
-          <AppButton variant={"secondary"} text="Add Product" />
-          <AppButton variant={"outline"} text="Add Product" />
+          <AppButton
+            variant={"secondary"}
+            text="Add Product"
+            onClick={handleAddProduct}
+          />
+          <AppButton variant={"outline"} text="Add Product" onClick={handleAddProduct} />
           <AppButton variant={"ghost"} text="Add Product" />
           <AppButton variant={"link"} text="Add Product" />
           <AppButton variant={"destructive"} text="Add Product" />

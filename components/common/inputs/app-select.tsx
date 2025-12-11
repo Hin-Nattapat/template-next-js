@@ -1,4 +1,4 @@
-import type { IOption } from "@/types/global";
+import type { IOption } from "@/types/global.types";
 
 import {
   Select,
@@ -7,7 +7,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "../ui/select";
+} from "../../ui/select";
 
 interface IProps extends React.ComponentProps<typeof Select> {
   options?: IOption[];

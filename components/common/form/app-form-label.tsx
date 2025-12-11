@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-import { FormLabel } from "../ui/form";
+import { FormLabel } from "../../ui/form";
 
 interface IProps extends React.ComponentProps<typeof FormLabel> {
   label?: string;

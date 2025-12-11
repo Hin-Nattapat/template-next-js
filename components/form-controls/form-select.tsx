@@ -1,21 +1,19 @@
-"use client";
-
 import { useFormContext } from "react-hook-form";
 
 import { cn } from "@/lib/utils";
 
-import AppFormLabel from "../common/app-form-label";
+import AppFormLabel from "../common/form/app-form-label";
+import AppSelect from "../common/inputs/app-select";
 import { FormField, FormItem, FormMessage } from "../ui/form";
-import { Textarea } from "../ui/textarea";
 
-interface IProps extends React.ComponentProps<typeof Textarea> {
+interface IProps extends React.ComponentProps<typeof AppSelect> {
   label?: string;
   name: string;
   required?: boolean;
   layout?: "horizontal" | "vertical";
 }
 
-const FormInputArea = (props: IProps) => {
+const FormSelect = (props: IProps) => {
   const { label, name, required, layout = "vertical", ...rest } = props;
   const { control } = useFormContext();
 
@@ -32,7 +30,7 @@ const FormInputArea = (props: IProps) => {
             )}
           >
             {label && <AppFormLabel label={label} required={required} layout={layout} />}
-            <Textarea {...field} {...rest} />
+            <AppSelect {...field} {...rest} />
             <FormMessage />
           </div>
         </FormItem>
@@ -41,4 +39,4 @@ const FormInputArea = (props: IProps) => {
   );
 };
 
-export default FormInputArea;
+export default FormSelect;
