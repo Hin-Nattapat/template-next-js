@@ -5,6 +5,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
 
 import AppDialogRoot from "@/components/common/dialogs/app-dialog-root";
+import ThemeProvider from "@/components/common/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
@@ -30,11 +31,13 @@ const RootLayout = (props: IProps) => {
   const { children } = props;
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
-        <Toaster />
-        <AppDialogRoot />
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+          <Toaster />
+          <AppDialogRoot />
+        </ThemeProvider>
       </body>
     </html>
   );
