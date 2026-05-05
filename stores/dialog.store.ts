@@ -1,8 +1,8 @@
 import { create } from "zustand";
 
-import type { IAlertConfig, IConfirmConfig, IDialogItem } from "@/types/dialog.types";
+import type { IAlertConfig, IConfirmConfig, IDialogItem } from "@/types/dialog";
 
-interface IDialogStore {
+export type TDialogState = {
   dialog: IDialogItem | null;
   alert: (title: string, message: string, config?: Partial<IAlertConfig>) => void;
   confirm: (
@@ -12,9 +12,9 @@ interface IDialogStore {
   ) => Promise<boolean>;
   closeDialog: () => void;
   handleConfirm: () => void;
-}
+};
 
-export const useDialogStore = create<IDialogStore>((set, get) => ({
+export const useDialogStore = create<TDialogState>((set, get) => ({
   dialog: null,
 
   alert: (title, message, config?) => {

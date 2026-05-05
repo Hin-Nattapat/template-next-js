@@ -15,7 +15,7 @@ const options = [
   { value: "2", label: "Option 2" },
   { value: "3", label: "Option 3" },
 ];
-export default function Home() {
+const ProductsPage = () => {
   const form = useForm();
   const dialog = useDialog();
   const handleToast = () => {
@@ -30,7 +30,7 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-brew-background flex min-h-screen items-center justify-center font-sans dark:bg-black">
+    <div className="flex min-h-screen items-center justify-center bg-white font-sans dark:bg-black">
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center gap-2 bg-white px-16 py-32 sm:items-start dark:bg-black">
         <Form {...form}>
           <AppButton variant={"default"} text="Add Product" onClick={handleToast} />
@@ -55,4 +55,6 @@ export default function Home() {
       </main>
     </div>
   );
-}
+};
+
+export default ProductsPage;

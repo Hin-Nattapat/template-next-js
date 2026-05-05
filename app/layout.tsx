@@ -2,6 +2,7 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import type { ReactNode } from "react";
 
 import AppDialogRoot from "@/components/common/dialogs/app-dialog-root";
 import { Toaster } from "@/components/ui/sonner";
@@ -17,15 +18,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BrewHub",
-  description: "BrewHub is a platform for coffee lovers",
+  title: "Next.js Template",
+  description: "Next.js template",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+interface IProps {
+  children: ReactNode;
+}
+
+const RootLayout = (props: IProps) => {
+  const { children } = props;
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
@@ -35,4 +38,6 @@ export default function RootLayout({
       </body>
     </html>
   );
-}
+};
+
+export default RootLayout;

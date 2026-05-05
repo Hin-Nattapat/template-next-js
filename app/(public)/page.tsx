@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 
-export default function Home() {
+const Home = () => {
   return (
-    <div className="bg-brew-background flex min-h-screen items-center justify-center font-sans dark:bg-black">
+    <div className="flex min-h-screen items-center justify-center bg-white font-sans dark:bg-black">
       <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between bg-white px-16 py-32 sm:items-start dark:bg-black">
         <Image
           className="dark:invert"
@@ -64,4 +64,6 @@ export default function Home() {
       </main>
     </div>
   );
-}
+};
+
+export default Home;

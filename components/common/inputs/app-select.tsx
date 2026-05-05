@@ -1,4 +1,4 @@
-import type { IOption } from "@/types/global.types";
+import type { IOption } from "@/types/global";
 
 import {
   Select,

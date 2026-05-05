@@ -1,6 +1,6 @@
 import { treaty } from "@elysiajs/eden";
 
-import type { TApp } from "@/types/api.types";
+import type { TApp } from "@/types/api";
 
 import { env } from "./env";
 

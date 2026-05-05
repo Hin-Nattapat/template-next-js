@@ -1,5 +1,5 @@
 import { useDialogStore } from "@/stores/dialog.store";
-import type { IAlertConfig, IConfirmConfig } from "@/types/dialog.types";
+import type { IAlertConfig, IConfirmConfig } from "@/types/dialog";
 
 export function useDialog() {
   const { alert: storeAlert, confirm: storeConfirm } = useDialogStore();

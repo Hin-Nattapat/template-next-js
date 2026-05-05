@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { useDialogStore } from "@/stores/dialog.store";
-import type { IAlertConfig, IConfirmConfig } from "@/types/dialog.types";
+import type { IAlertConfig, IConfirmConfig } from "@/types/dialog";
 
 const variantIcons = {
   info: Info,
