@@ -62,7 +62,7 @@ const AppDialogRoot = () => {
             <DialogDescription>{config.message}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button onClick={closeDialog}>{config.buttonText || "ตกลง"}</Button>
+            <Button onClick={closeDialog}>{config.buttonText || "OK"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -80,7 +80,7 @@ const AppDialogRoot = () => {
             <AlertDialogDescription>{config.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{config.cancelText || "ยกเลิก"}</AlertDialogCancel>
+            <AlertDialogCancel>{config.cancelText || "Cancel"}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirm}
               className={
@@ -89,7 +89,7 @@ const AppDialogRoot = () => {
                   : ""
               }
             >
-              {config.confirmText || "ยืนยัน"}
+              {config.confirmText || "Confirm"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

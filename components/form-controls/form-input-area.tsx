@@ -13,10 +13,13 @@ interface IProps extends React.ComponentProps<typeof Textarea> {
   name: string;
   required?: boolean;
   layout?: "horizontal" | "vertical";
+  /** Inline helper text rendered under the field. Use for source/format
+   *  hints that aren't validation errors (those go through FormMessage). */
+  remark?: React.ReactNode;
 }
 
 const FormInputArea = (props: IProps) => {
-  const { label, name, required, layout = "vertical", ...rest } = props;
+  const { label, name, required, layout = "vertical", remark, ...rest } = props;
   const { control } = useFormContext();
 
   return (
@@ -34,6 +37,7 @@ const FormInputArea = (props: IProps) => {
             {label && <AppFormLabel label={label} required={required} layout={layout} />}
             <Textarea {...field} {...rest} />
             <FormMessage />
+            {remark && <p className="text-fg-4 text-[11px]">{remark}</p>}
           </div>
         </FormItem>
       )}

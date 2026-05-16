@@ -11,10 +11,13 @@ interface IProps extends React.ComponentProps<typeof AppSelect> {
   name: string;
   required?: boolean;
   layout?: "horizontal" | "vertical";
+  /** Inline helper text rendered under the field. Use for source/format
+   *  hints that aren't validation errors (those go through FormMessage). */
+  remark?: React.ReactNode;
 }
 
 const FormSelect = (props: IProps) => {
-  const { label, name, required, layout = "vertical", ...rest } = props;
+  const { label, name, required, layout = "vertical", remark, ...rest } = props;
   const { control } = useFormContext();
 
   return (
@@ -30,8 +33,19 @@ const FormSelect = (props: IProps) => {
             )}
           >
             {label && <AppFormLabel label={label} required={required} layout={layout} />}
-            <AppSelect {...field} {...rest} />
+            {/*
+              Radix Select uses `value` + `onValueChange`. RHF's `field` provides
+              `value` + `onChange`, so spreading `{...field}` would silently fail
+              to wire up selection. Map onChange → onValueChange explicitly.
+            */}
+            <AppSelect
+              {...rest}
+              name={field.name}
+              value={field.value}
+              onValueChange={field.onChange}
+            />
             <FormMessage />
+            {remark && <p className="text-fg-4 text-[11px]">{remark}</p>}
           </div>
         </FormItem>
       )}
