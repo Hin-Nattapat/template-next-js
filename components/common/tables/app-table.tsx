@@ -3,6 +3,8 @@
 import { ChevronDown, ChevronsUpDown, ChevronUp } from "lucide-react";
 import { type ReactNode, useMemo, useState } from "react";
 
+import AppButton from "@/components/common/buttons/app-button";
+import AppTooltip from "@/components/common/overlays/app-tooltip";
 import {
   Table,
   TableBody,
@@ -27,6 +29,8 @@ export interface IAppTableColumn<TRow> {
   sortable?: boolean;
   /** Required when sortable=true; lets the table extract a comparable value. */
   sortAccessor?: (row: TRow) => string | number | Date | null | undefined;
+  /** Renders a ⓘ beside the header that explains the column on hover/focus. */
+  headerTooltip?: string;
 }
 
 export interface IAppTableProps<TRow> {
@@ -41,6 +45,11 @@ export interface IAppTableProps<TRow> {
   defaultSortBy?: string;
   defaultSortDir?: TAppTableSortDir;
   className?: string;
+  /** Controlled server-sort. When `onSortChange` is set, the table renders
+   *  `data` as-is and reports header clicks instead of sorting internally. */
+  sortBy?: string;
+  sortDir?: TAppTableSortDir;
+  onSortChange?: (key: string) => void;
 }
 
 const ALIGN_CLASS = {
@@ -72,25 +81,36 @@ const AppTable = <TRow,>(props: IAppTableProps<TRow>) => {
     className,
   } = props;
 
-  const [sortBy, setSortBy] = useState<string | null>(defaultSortBy ?? null);
-  const [sortDir, setSortDir] = useState<TAppTableSortDir>(defaultSortDir);
+  const controlled = props.onSortChange != null;
+  const [internalSortBy, setInternalSortBy] = useState<string | null>(
+    defaultSortBy ?? null,
+  );
+  const [internalSortDir, setInternalSortDir] =
+    useState<TAppTableSortDir>(defaultSortDir);
+
+  const sortBy = controlled ? (props.sortBy ?? null) : internalSortBy;
+  const sortDir = controlled ? (props.sortDir ?? "asc") : internalSortDir;
 
   const sortedData = useMemo(() => {
-    if (!sortBy) return data;
-    const column = columns.find((c) => c.key === sortBy);
+    if (controlled || !sortBy) return data;
+    const column = columns.find(c => c.key === sortBy);
     if (!column?.sortAccessor) return data;
     const accessor = column.sortAccessor;
     const dirMul = sortDir === "asc" ? 1 : -1;
     return [...data].sort((a, b) => compare(accessor(a), accessor(b)) * dirMul);
-  }, [data, columns, sortBy, sortDir]);
+  }, [controlled, data, columns, sortBy, sortDir]);
 
   const handleHeaderClick = (column: IAppTableColumn<TRow>) => {
     if (!column.sortable) return;
-    if (sortBy === column.key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    if (controlled) {
+      props.onSortChange?.(column.key);
+      return;
+    }
+    if (internalSortBy === column.key) {
+      setInternalSortDir(d => (d === "asc" ? "desc" : "asc"));
     } else {
-      setSortBy(column.key);
-      setSortDir("asc");
+      setInternalSortBy(column.key);
+      setInternalSortDir("asc");
     }
   };
 
@@ -98,8 +118,9 @@ const AppTable = <TRow,>(props: IAppTableProps<TRow>) => {
 
   return (
     <div
+      aria-busy={isLoading || undefined}
       className={cn(
-        "border-border bg-card overflow-hidden rounded-lg border shadow-xs",
+        "border-border bg-card overflow-x-auto rounded-lg border shadow-xs",
         className,
       )}
     >
@@ -111,7 +132,7 @@ const AppTable = <TRow,>(props: IAppTableProps<TRow>) => {
           )}
         >
           <TableRow className="hover:bg-surface-2">
-            {columns.map((col) => {
+            {columns.map(col => {
               const isSorted = sortBy === col.key;
               const Indicator = !col.sortable
                 ? null
@@ -120,6 +141,21 @@ const AppTable = <TRow,>(props: IAppTableProps<TRow>) => {
                   : sortDir === "asc"
                     ? ChevronUp
                     : ChevronDown;
+              const headerContent = (
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1",
+                    col.align === "right" && "flex-row-reverse",
+                  )}
+                >
+                  {col.header}
+                  {Indicator && (
+                    <Indicator
+                      className={cn("h-3 w-3", isSorted ? "text-fg-2" : "text-fg-5")}
+                    />
+                  )}
+                </span>
+              );
               return (
                 <TableHead
                   key={col.key}
@@ -128,9 +164,7 @@ const AppTable = <TRow,>(props: IAppTableProps<TRow>) => {
                     "text-fg-3 font-medium",
                     ALIGN_CLASS[col.align ?? "left"],
                     col.headerClassName,
-                    col.sortable && "hover:text-fg cursor-pointer select-none",
                   )}
-                  onClick={() => handleHeaderClick(col)}
                   aria-sort={
                     isSorted
                       ? sortDir === "asc"
@@ -141,20 +175,37 @@ const AppTable = <TRow,>(props: IAppTableProps<TRow>) => {
                         : undefined
                   }
                 >
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1",
-                      col.align === "right" && "flex-row-reverse",
+                  {/* headerContent handles right-align reversal itself; keep
+                      this wrapper in DOM order so the ⓘ hugs its own label. */}
+                  <span className="inline-flex items-center gap-1">
+                    {col.sortable ? (
+                      // A real button so sorting works from the keyboard, not
+                      // just onClick on the <th>.
+                      <AppButton
+                        variant="unstyled"
+                        size="fit"
+                        type="button"
+                        onClick={() => handleHeaderClick(col)}
+                        // Negative margins grow the hit area without moving
+                        // the layout; coarse pointers get ~44px.
+                        className="hover:text-fg -m-1 p-1 select-none pointer-coarse:-m-3 pointer-coarse:p-3"
+                      >
+                        {headerContent}
+                      </AppButton>
+                    ) : (
+                      headerContent
                     )}
-                  >
-                    {col.header}
-                    {Indicator && (
-                      <Indicator
-                        className={cn(
-                          "h-3 w-3",
-                          isSorted ? "text-fg-2" : "text-fg-5",
-                        )}
-                      />
+                    {col.headerTooltip && (
+                      <AppTooltip content={col.headerTooltip}>
+                        <AppButton
+                          variant="unstyled"
+                          size="fit"
+                          aria-label="More info"
+                          className="text-fg-4 cursor-help"
+                        >
+                          {"ⓘ"}
+                        </AppButton>
+                      </AppTooltip>
                     )}
                   </span>
                 </TableHead>
@@ -166,8 +217,11 @@ const AppTable = <TRow,>(props: IAppTableProps<TRow>) => {
           {isLoading ? (
             Array.from({ length: 3 }).map((_, i) => (
               <TableRow key={`skeleton-${i}`} className="hover:bg-transparent">
-                {columns.map((col) => (
-                  <TableCell key={col.key} className={ALIGN_CLASS[col.align ?? "left"]}>
+                {columns.map(col => (
+                  <TableCell
+                    key={col.key}
+                    className={cn(ALIGN_CLASS[col.align ?? "left"], col.className)}
+                  >
                     <div className="bg-surface-2 h-4 w-full animate-pulse rounded" />
                   </TableCell>
                 ))}
@@ -189,7 +243,7 @@ const AppTable = <TRow,>(props: IAppTableProps<TRow>) => {
                 className={cn(onRowClick && "cursor-pointer")}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
               >
-                {columns.map((col) => (
+                {columns.map(col => (
                   <TableCell
                     key={col.key}
                     className={cn(ALIGN_CLASS[col.align ?? "left"], col.className)}

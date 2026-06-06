@@ -25,6 +25,12 @@ interface IProps extends React.ComponentProps<typeof Select> {
    *  validation errors. */
   remark?: React.ReactNode;
   containerClassName?: string;
+  /** Land on the trigger so an external label (e.g. FormControl's htmlFor
+   *  wiring) can target and describe it. */
+  id?: string;
+  "aria-describedby"?: string;
+  "aria-invalid"?: React.AriaAttributes["aria-invalid"];
+  "aria-required"?: React.AriaAttributes["aria-required"];
 }
 
 const AppSelect = (props: IProps) => {
@@ -36,9 +42,14 @@ const AppSelect = (props: IProps) => {
     required,
     remark,
     containerClassName,
+    id,
+    "aria-describedby": ariaDescribedBy,
+    "aria-invalid": ariaInvalid,
+    "aria-required": ariaRequired,
     ...rest
   } = props;
-  const triggerId = useId();
+  const autoId = useId();
+  const triggerId = id ?? autoId;
   // Radix Select's SelectValue reads the selected item's text from the
   // SelectItem registry — but items only register after SelectContent
   // mounts, which only happens when the dropdown opens. For controlled
@@ -47,11 +58,17 @@ const AppSelect = (props: IProps) => {
   // once. Bridge the gap by forwarding the ref to a leaf <span> via
   // asChild and rendering the looked-up label ourselves — this dodges
   // React 19's "ref on a container with text children" diagnostic.
-  const selectedLabel = options.find((o) => String(o.value) === String(value))?.label;
+  const selectedLabel = options.find(o => String(o.value) === String(value))?.label;
 
   const trigger = (
     <Select {...rest} value={value}>
-      <SelectTrigger id={triggerId} className="w-full">
+      <SelectTrigger
+        id={triggerId}
+        aria-describedby={ariaDescribedBy}
+        aria-invalid={ariaInvalid}
+        aria-required={ariaRequired}
+        className="w-full"
+      >
         {selectedLabel != null ? (
           <SelectValue asChild>
             <span>{selectedLabel}</span>
@@ -62,7 +79,7 @@ const AppSelect = (props: IProps) => {
       </SelectTrigger>
       <SelectContent>
         <SelectGroup>
-          {options.map((option) => (
+          {options.map(option => (
             <SelectItem key={option.value} value={option.value}>
               {option.label}
             </SelectItem>

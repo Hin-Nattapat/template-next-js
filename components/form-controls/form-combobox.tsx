@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 import AppFormLabel from "../common/form/app-form-label";
 import AppCombobox from "../common/inputs/app-combobox";
-import { FormField, FormItem, FormMessage } from "../ui/form";
+import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 
 interface IProps extends React.ComponentProps<typeof AppCombobox> {
   label?: string;
@@ -27,20 +27,23 @@ const FormCombobox = (props: IProps) => {
       name={name}
       control={control}
       render={({ field }) => (
-        <FormItem className="w-full">
+        <FormItem className="w-full min-w-0 grid-cols-1">
           <div
             className={cn(
-              "flex gap-1",
+              "flex min-w-0 gap-1",
               layout === "horizontal" ? "flex-row items-start" : "flex-col",
             )}
           >
             {label && <AppFormLabel label={label} required={required} layout={layout} />}
-            <AppCombobox
-              {...rest}
-              name={field.name}
-              value={field.value}
-              onValueChange={field.onChange}
-            />
+            <FormControl>
+              <AppCombobox
+                {...rest}
+                aria-required={required || undefined}
+                name={field.name}
+                value={field.value}
+                onValueChange={field.onChange}
+              />
+            </FormControl>
             <FormMessage />
             {remark && <p className="text-fg-4 text-[11px]">{remark}</p>}
           </div>

@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 import AppFormLabel from "../common/form/app-form-label";
 import AppSelect from "../common/inputs/app-select";
-import { FormField, FormItem, FormMessage } from "../ui/form";
+import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 
 interface IProps extends React.ComponentProps<typeof AppSelect> {
   label?: string;
@@ -38,12 +38,15 @@ const FormSelect = (props: IProps) => {
               `value` + `onChange`, so spreading `{...field}` would silently fail
               to wire up selection. Map onChange → onValueChange explicitly.
             */}
-            <AppSelect
-              {...rest}
-              name={field.name}
-              value={field.value}
-              onValueChange={field.onChange}
-            />
+            <FormControl>
+              <AppSelect
+                {...rest}
+                aria-required={required || undefined}
+                name={field.name}
+                value={field.value}
+                onValueChange={field.onChange}
+              />
+            </FormControl>
             <FormMessage />
             {remark && <p className="text-fg-4 text-[11px]">{remark}</p>}
           </div>

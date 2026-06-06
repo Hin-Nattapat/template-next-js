@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 
 import {
   Command,
@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 interface IComboboxOption {
   value: string;
   label: string;
-  /** Extra search keywords (e.g. asset name + symbol) when label alone
+  /** Extra search keywords (e.g. an entity's name + code) when label alone
    *  isn't enough — cmdk filters against this string in addition to label. */
   keywords?: string;
 }
@@ -32,6 +32,12 @@ interface IProps {
   className?: string;
   name?: string;
   disabled?: boolean;
+  /** Land on the trigger so an external label (e.g. FormControl's htmlFor
+   *  wiring) can target and describe it. */
+  id?: string;
+  "aria-describedby"?: string;
+  "aria-invalid"?: React.AriaAttributes["aria-invalid"];
+  "aria-required"?: React.AriaAttributes["aria-required"];
 }
 
 const AppCombobox = (props: IProps) => {
@@ -45,8 +51,13 @@ const AppCombobox = (props: IProps) => {
     className,
     name,
     disabled,
+    id,
+    "aria-describedby": ariaDescribedBy,
+    "aria-invalid": ariaInvalid,
+    "aria-required": ariaRequired,
   } = props;
   const [open, setOpen] = useState(false);
+  const listboxId = useId();
 
   const selected = options.find(o => o.value === value);
 
@@ -55,11 +66,17 @@ const AppCombobox = (props: IProps) => {
       <PopoverTrigger asChild>
         <button
           type="button"
+          role="combobox"
+          id={id}
           name={name}
           disabled={disabled}
           aria-expanded={open}
+          aria-controls={listboxId}
+          aria-describedby={ariaDescribedBy}
+          aria-invalid={ariaInvalid}
+          aria-required={ariaRequired}
           className={cn(
-            // Mirror SelectTrigger so the Asset combobox looks identical
+            // Mirror SelectTrigger so the combobox looks identical
             // to other selects/inputs in the form (border, dark bg tint,
             // rounded-sm, focus ring + transition).
             "border-input dark:bg-input/30 dark:hover:bg-input/50 focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive flex h-9 w-full items-center justify-between gap-2 rounded-sm border bg-transparent px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
@@ -68,7 +85,7 @@ const AppCombobox = (props: IProps) => {
         >
           <span
             className={cn(
-              "truncate text-left",
+              "min-w-0 flex-1 truncate text-left",
               !selected && "text-muted-foreground",
             )}
           >
@@ -77,10 +94,13 @@ const AppCombobox = (props: IProps) => {
           <ChevronDown className="size-4 shrink-0 opacity-50" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] p-0"
+        align="start"
+      >
         <Command>
           <CommandInput placeholder={searchPlaceholder} />
-          <CommandList>
+          <CommandList id={listboxId}>
             <CommandEmpty>{emptyMessage}</CommandEmpty>
             <CommandGroup>
               {options.map(opt => (

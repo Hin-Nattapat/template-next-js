@@ -41,12 +41,12 @@ const ExamplePage = () => {
 
       <Form {...form}>
         <div className="mb-8 flex flex-wrap gap-2">
-          <AppButton variant="default" text="Toast" onClick={handleToast} />
-          <AppButton variant="secondary" text="Confirm dialog" onClick={handleConfirm} />
-          <AppButton variant="outline" text="Outline" />
-          <AppButton variant="ghost" text="Ghost" />
-          <AppButton variant="link" text="Link" />
-          <AppButton variant="destructive" text="Destructive" />
+          <AppButton variant="default" label="Toast" onClick={handleToast} />
+          <AppButton variant="secondary" label="Confirm dialog" onClick={handleConfirm} />
+          <AppButton variant="outline" label="Outline" />
+          <AppButton variant="ghost" label="Ghost" />
+          <AppButton variant="link" label="Link" />
+          <AppButton variant="destructive" label="Destructive" />
         </div>
 
         <div className="flex flex-col gap-4">

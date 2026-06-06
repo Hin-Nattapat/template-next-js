@@ -5,7 +5,7 @@ import { useFormContext } from "react-hook-form";
 import { cn } from "@/lib/utils";
 
 import AppFormLabel from "../common/form/app-form-label";
-import { FormField, FormItem, FormMessage } from "../ui/form";
+import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Textarea } from "../ui/textarea";
 
 interface IProps extends React.ComponentProps<typeof Textarea> {
@@ -35,7 +35,9 @@ const FormInputArea = (props: IProps) => {
             )}
           >
             {label && <AppFormLabel label={label} required={required} layout={layout} />}
-            <Textarea {...field} {...rest} />
+            <FormControl>
+              <Textarea {...field} {...rest} aria-required={required || undefined} />
+            </FormControl>
             <FormMessage />
             {remark && <p className="text-fg-4 text-[11px]">{remark}</p>}
           </div>
