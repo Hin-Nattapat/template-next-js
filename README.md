@@ -9,9 +9,10 @@ The naming and architecture rules an AI agent (or new contributor) must follow l
 - **Framework**: Next.js 16 (App Router) + React 19
 - **Language**: TypeScript (strict)
 - **Styling**: Tailwind CSS v4 + shadcn/ui (new-york) + lucide-react
-- **State**: Zustand
+- **State (client)**: Zustand
+- **State (server)**: TanStack Query (`@tanstack/react-query`) — `QueryClientProvider` lives in `app/providers.tsx`
 - **Forms**: react-hook-form + Zod (`@hookform/resolvers`)
-- **API**: Native `fetch` wrapper with Zod runtime validation (`lib/api-client.ts`)
+- **API**: Native `fetch` wrapper with Zod runtime validation (`lib/api-client.ts`); hooks call `apiClient` through TanStack Query
 - **Theming**: `next-themes` (light / dark / system)
 - **Notifications**: sonner toast + a promise-based dialog system
 - **Tooling**: ESLint flat config, Prettier (with Tailwind plugin), Husky, lint-staged
@@ -88,7 +89,7 @@ Full rules in [`.claude/CLAUDE.md`](./.claude/CLAUDE.md). Highlights:
 
 It:
 
-- Prefixes paths with `NEXT_PUBLIC_API_URL` (validated by `lib/env.ts`)
+- Uses relative `/api/*` URLs only — the BFF proxy at `app/api/[...proxy]/route.ts` forwards them to `INTERNAL_API_URL` (server-only, validated by `lib/env.ts`), so the browser never speaks to the backend directly
 - Sets JSON headers and parses JSON responses
 - Throws `ApiError(status, message, body)` from `lib/api-error.ts` on non-2xx
 - Validates the response with an optional Zod schema (3rd arg)
@@ -173,45 +174,69 @@ return apiClient.get(
 
 ### Client Component usage
 
-Wrap services in feature hooks. Components call hooks, not services directly.
+Wrap services in feature hooks. Components call hooks, not services directly. All server state goes through TanStack Query — no `useEffect` + `useState` for fetch state.
+
+Define stable, hierarchical query keys in a `<x>.keys.ts` file alongside the service:
 
 ```ts
+// features/example/services/examples.keys.ts
+export const examplesKeys = {
+  all: ["examples"] as const,
+  lists: () => [...examplesKeys.all, "list"] as const,
+  list: (filters: Record<string, unknown> = {}) =>
+    [...examplesKeys.lists(), filters] as const,
+  details: () => [...examplesKeys.all, "detail"] as const,
+  detail: (id: string) => [...examplesKeys.details(), id] as const,
+};
+```
+
+Then wrap each service call in a `useQuery` (reads) or `useMutation` (writes):
+
+```ts
+// features/example/hooks/use-examples.ts
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { getExamples } from "../services/examples.service";
-import type { TExample } from "../types";
+import { examplesKeys } from "../services/examples.keys";
+import { createExample, getExampleById, getExamples } from "../services/examples.service";
+import type { TCreateExampleInput } from "../types";
 
-export type TUseExamplesReturn = {
-  examples: TExample[];
-  isLoading: boolean;
-  error: string | null;
-};
+export function useExamples() {
+  return useQuery({
+    queryKey: examplesKeys.list(),
+    queryFn: () => getExamples(),
+  });
+}
 
-export function useExamples(): TUseExamplesReturn {
-  const [examples, setExamples] = useState<TExample[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function useExample(id: string) {
+  return useQuery({
+    queryKey: examplesKeys.detail(id),
+    queryFn: () => getExampleById(id),
+    enabled: Boolean(id),
+  });
+}
 
-  useEffect(() => {
-    let cancelled = false;
-    getExamples()
-      .then(res => !cancelled && setExamples(res.items))
-      .catch(
-        err => !cancelled && setError(err instanceof Error ? err.message : "Unknown"),
-      )
-      .finally(() => !cancelled && setIsLoading(false));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+export function useCreateExample() {
+  const queryClient = useQueryClient();
 
-  return { examples, isLoading, error };
+  return useMutation({
+    mutationFn: (input: TCreateExampleInput) => createExample(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: examplesKeys.lists() });
+    },
+  });
 }
 ```
 
-For richer client-side caching, deduping, and mutations, layer TanStack Query on top — services stay unchanged.
+Components consume the hook directly; loading/error/data come from TanStack:
+
+```ts
+const { data, isLoading, isError } = useExamples();
+const { mutate: createExample, isPending } = useCreateExample();
+```
+
+After a mutation, invalidate the affected key prefix in `onSuccess` — TanStack will refetch any active queries that depend on it. Don't refetch manually.
 
 ### Error handling
 
@@ -327,8 +352,8 @@ The `features/example/` folder is a working scaffold demonstrating the full patt
 
 ## Environment variables
 
-| Variable              | Description                   |
-| --------------------- | ----------------------------- |
-| `NEXT_PUBLIC_API_URL` | Base URL for the backend API. |
+| Variable           | Description                                                                                                               |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------- |
+| `INTERNAL_API_URL` | Backend base URL. Server-only — read by the BFF proxy at `app/api/[...proxy]/route.ts`; the browser bundle never sees it. |
 
-Validated at boot in `lib/env.ts` with Zod. Add new public variables to that schema; add server-only variables to a separate `serverEnvSchema`.
+Validated at boot in `lib/env.ts` with Zod (`serverEnvSchema`). Add new server-only variables to that schema; a public (`NEXT_PUBLIC_*`) variable would need its own client schema — none exist today.

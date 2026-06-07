@@ -228,6 +228,7 @@ For server components, mark the function `async` and call services directly. For
 
 `lib/api-client.ts` is the only allowed network entry point.
 
+- Uses **relative `/api/*` URLs only** — the BFF proxy at `app/api/[...proxy]/route.ts` forwards them to `INTERNAL_API_URL` (server-only, validated by `lib/env.ts`); the browser bundle never sees the backend URL
 - Throws `ApiError(status, message, body)` from `lib/api-error.ts` on non-2xx
 - Validates response with optional Zod schema (3rd arg)
 - Forwards Next.js fetch options: `cache`, `next.revalidate`, `next.tags` (RSC caching)
@@ -280,6 +281,7 @@ What you get:
 
 ## 7. State
 
+- **TanStack Query** for server state. Reads go through `useQuery`, writes through `useMutation` with `onSuccess` invalidation of the affected key prefix — never `useEffect` + `useState` for fetch state, never manual refetch. Query keys come from a hierarchical factory in `features/<x>/services/<x>.keys.ts` (see `examples.keys.ts`).
 - **Zustand** for client state. One store per concern (`cart.store.ts`, `auth.store.ts`).
 - Export the hook as `useXStore`, type the state as `TXState`.
 - Select narrow slices in components: `const items = useCartStore(s => s.items)`.
