@@ -1,7 +1,6 @@
 import type { z } from "zod";
 
 import { ApiError } from "./api-error";
-import { env } from "./env";
 
 type TQueryValue = string | number | boolean | null | undefined;
 
@@ -19,18 +18,18 @@ export type TBodyOptions<TBody> = TRequestOptions & {
 };
 
 function buildUrl(path: string, query?: TRequestOptions["query"]): string {
-  const url = new URL(
-    path.startsWith("http") ? path : `${env.NEXT_PUBLIC_API_URL}${path}`,
-  );
-
+  // Always use relative URLs. The browser resolves against the FE origin,
+  // which routes /api/* through the BFF proxy at app/api/[...proxy]/route.ts.
+  // The proxy forwards to the BE so the browser never speaks to it directly.
+  const search = new URLSearchParams();
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value === undefined || value === null) continue;
-      url.searchParams.set(key, String(value));
+      search.set(key, String(value));
     }
   }
-
-  return url.toString();
+  const qs = search.toString();
+  return qs ? `${path}?${qs}` : path;
 }
 
 async function request<TResponse>(
@@ -42,19 +41,24 @@ async function request<TResponse>(
   const { body, query, headers, signal, cache, next } = options;
   const url = buildUrl(path, query);
 
+  // FormData bodies need the browser to set Content-Type with the
+  // multipart boundary; explicitly setting application/json there would
+  // prevent that. Plain object bodies still serialize as JSON.
+  const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
   const init: RequestInit & { next?: TRequestOptions["next"] } = {
     method,
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...headers,
     },
     signal,
     cache,
     next,
+    credentials: "same-origin",
   };
 
   if (body !== undefined) {
-    init.body = JSON.stringify(body);
+    init.body = isFormData ? (body as FormData) : JSON.stringify(body);
   }
 
   const res = await fetch(url, init);
