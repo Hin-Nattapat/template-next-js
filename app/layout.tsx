@@ -8,6 +8,8 @@ import AppDialogRoot from "@/components/common/dialogs/app-dialog-root";
 import ThemeProvider from "@/components/common/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 
+import Providers from "./providers";
+
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
@@ -34,7 +36,7 @@ const RootLayout = (props: IProps) => {
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <Providers>{children}</Providers>
           <Toaster />
           <AppDialogRoot />
         </ThemeProvider>

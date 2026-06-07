@@ -1,40 +1,33 @@
-// Example hook — colocates state + data fetching for this feature.
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { getExamples } from "../services/examples.service";
-import type { TExample } from "../types";
+import { examplesKeys } from "../services/examples.keys";
+import { createExample, getExampleById, getExamples } from "../services/examples.service";
+import type { TCreateExampleInput } from "../types";
 
-export type TUseExamplesReturn = {
-  examples: TExample[];
-  isLoading: boolean;
-  error: string | null;
-};
+export function useExamples() {
+  return useQuery({
+    queryKey: examplesKeys.list(),
+    queryFn: () => getExamples(),
+  });
+}
 
-export function useExamples(): TUseExamplesReturn {
-  const [examples, setExamples] = useState<TExample[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export function useExample(id: string) {
+  return useQuery({
+    queryKey: examplesKeys.detail(id),
+    queryFn: () => getExampleById(id),
+    enabled: Boolean(id),
+  });
+}
 
-  useEffect(() => {
-    let cancelled = false;
+export function useCreateExample() {
+  const queryClient = useQueryClient();
 
-    getExamples()
-      .then(res => {
-        if (!cancelled) setExamples(res.items);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Unknown error");
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  return { examples, isLoading, error };
+  return useMutation({
+    mutationFn: (input: TCreateExampleInput) => createExample(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: examplesKeys.lists() });
+    },
+  });
 }
