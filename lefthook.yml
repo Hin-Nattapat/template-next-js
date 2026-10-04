@@ -1,0 +1,18 @@
+pre-commit:
+  parallel: false
+  commands:
+    eslint:
+      glob: "*.{ts,tsx,mjs}"
+      run: bunx eslint --fix {staged_files}
+      stage_fixed: true
+    prettier:
+      glob: "*.{ts,tsx,mjs,js,jsx,json,css,md}"
+      run: bunx prettier --write {staged_files}
+      stage_fixed: true
+    gitleaks:
+      run: gitleaks git --pre-commit --staged --redact
+
+pre-push:
+  commands:
+    test:
+      run: bun test

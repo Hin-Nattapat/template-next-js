@@ -10,16 +10,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --fix",
+    "lint": "eslint . --fix && prettier --write .",
     "format": "prettier --write .",
-    "prepare": "husky"
-  },
-  "lint-staged": {
-    "*.{ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{js,jsx,json,css,md}": "prettier --write"
+    "test": "bun test"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -54,10 +47,12 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/bun": "^1.4.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.49.0",
+    "babel-plugin-react-compiler": "^1.0.0",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.8",
     "eslint-config-prettier": "^10.1.8",
@@ -67,8 +62,7 @@
     "eslint-plugin-simple-import-sort": "^12.1.1",
     "eslint-plugin-tailwindcss": "^4.0.0-beta.0",
     "eslint-plugin-unused-imports": "^4.3.0",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.2.7",
+    "lefthook": "^2.1.16",
     "prettier": "^3.7.4",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4",
