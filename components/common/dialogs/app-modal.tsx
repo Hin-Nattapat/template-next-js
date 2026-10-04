@@ -15,7 +15,7 @@ import {
 
 // AppModal is the canonical content modal: controlled open state,
 // typed title/description/children/footer, sensible default sizing.
-// Wrap reasons (per CLAUDE.md §3.6):
+// Wrap reasons (per STYLE.md §3):
 //
 //   1. Most call sites use the same Header → body → Footer shape; a
 //      typed prop API reads cleaner than 5 lines of subcomponents.

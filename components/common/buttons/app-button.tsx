@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "../../ui/button";
 
 // AppButton is the canonical button used everywhere in the app.
-// Wrap reasons (per CLAUDE.md §3 "wrap shadcn primitives in
+// Wrap reasons (per STYLE.md §3 "wrap shadcn primitives in
 // components/common/"):
 //
 //   1. One seam for app-wide style additions — push tweaks here

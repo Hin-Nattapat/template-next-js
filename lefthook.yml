@@ -7,6 +7,8 @@ pre-commit:
       stage_fixed: true
     prettier:
       glob: "*.{ts,tsx,mjs,js,jsx,json,css,md}"
+      # .claude/rules/ holds symlinks; Prettier rejects them, and their targets are formatted anyway.
+      exclude: ".claude/rules/*"
       run: bunx prettier --write {staged_files}
       stage_fixed: true
     gitleaks:
