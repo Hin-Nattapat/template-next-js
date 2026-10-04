@@ -20,12 +20,13 @@ const Command = (props: React.ComponentProps<typeof CommandPrimitive>) => {
   );
 };
 
-const CommandInput = (
-  props: React.ComponentProps<typeof CommandPrimitive.Input>,
-) => {
+const CommandInput = (props: React.ComponentProps<typeof CommandPrimitive.Input>) => {
   const { className, ...rest } = props;
   return (
-    <div data-slot="command-input-wrapper" className="flex h-9 items-center gap-2 border-b px-3">
+    <div
+      data-slot="command-input-wrapper"
+      className="flex h-9 items-center gap-2 border-b px-3"
+    >
       <Search className="size-4 shrink-0 opacity-50" />
       <CommandPrimitive.Input
         data-slot="command-input"
@@ -39,22 +40,21 @@ const CommandInput = (
   );
 };
 
-const CommandList = (
-  props: React.ComponentProps<typeof CommandPrimitive.List>,
-) => {
+const CommandList = (props: React.ComponentProps<typeof CommandPrimitive.List>) => {
   const { className, ...rest } = props;
   return (
     <CommandPrimitive.List
       data-slot="command-list"
-      className={cn("max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto", className)}
+      className={cn(
+        "max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto",
+        className,
+      )}
       {...rest}
     />
   );
 };
 
-const CommandEmpty = (
-  props: React.ComponentProps<typeof CommandPrimitive.Empty>,
-) => (
+const CommandEmpty = (props: React.ComponentProps<typeof CommandPrimitive.Empty>) => (
   <CommandPrimitive.Empty
     data-slot="command-empty"
     className="py-6 text-center text-sm"
@@ -62,9 +62,7 @@ const CommandEmpty = (
   />
 );
 
-const CommandGroup = (
-  props: React.ComponentProps<typeof CommandPrimitive.Group>,
-) => {
+const CommandGroup = (props: React.ComponentProps<typeof CommandPrimitive.Group>) => {
   const { className, ...rest } = props;
   return (
     <CommandPrimitive.Group
@@ -78,9 +76,7 @@ const CommandGroup = (
   );
 };
 
-const CommandItem = (
-  props: React.ComponentProps<typeof CommandPrimitive.Item>,
-) => {
+const CommandItem = (props: React.ComponentProps<typeof CommandPrimitive.Item>) => {
   const { className, ...rest } = props;
   return (
     <CommandPrimitive.Item
@@ -94,11 +90,4 @@ const CommandItem = (
   );
 };
 
-export {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-};
+export { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList };

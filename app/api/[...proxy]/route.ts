@@ -42,7 +42,9 @@ async function forward(req: NextRequest, ctx: IRouteContext): Promise<Response> 
 
   const outboundHeaders = new Headers();
   req.headers.forEach((value, key) => {
-    if (!HOP_BY_HOP.has(key.toLowerCase())) outboundHeaders.set(key, value);
+    if (!HOP_BY_HOP.has(key.toLowerCase())) {
+      outboundHeaders.set(key, value);
+    }
   });
 
   const hasBody = !["GET", "HEAD"].includes(req.method);
@@ -61,7 +63,9 @@ async function forward(req: NextRequest, ctx: IRouteContext): Promise<Response> 
 
   const responseHeaders = new Headers();
   upstream.headers.forEach((value, key) => {
-    if (!RESPONSE_STRIP.has(key.toLowerCase())) responseHeaders.set(key, value);
+    if (!RESPONSE_STRIP.has(key.toLowerCase())) {
+      responseHeaders.set(key, value);
+    }
   });
 
   return new NextResponse(upstream.body, {

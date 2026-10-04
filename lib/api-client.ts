@@ -24,7 +24,9 @@ function buildUrl(path: string, query?: TRequestOptions["query"]): string {
   const search = new URLSearchParams();
   if (query) {
     for (const [key, value] of Object.entries(query)) {
-      if (value === undefined || value === null) continue;
+      if (value === undefined || value === null) {
+        continue;
+      }
       search.set(key, String(value));
     }
   }

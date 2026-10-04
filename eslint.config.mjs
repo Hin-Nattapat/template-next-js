@@ -31,7 +31,7 @@ export default defineConfig([
   // 4. TS + Imports + Clean Code Rules
   // ================================
   {
-    name: "brew-hub-typescript-and-imports",
+    name: "typescript-and-imports",
     files: ["**/*.{ts,tsx}"],
     ignores: ["**/*.d.ts"],
     languageOptions: {
@@ -68,6 +68,16 @@ export default defineConfig([
       "no-console": ["warn", { allow: ["warn", "error"] }],
       "no-debugger": "warn",
 
+      // ---- Control Flow + Truthiness ----
+      curly: ["error", "all"],
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "CallExpression[callee.name='Boolean']",
+          message: "Use !!x or a plain truthy check. `.filter(Boolean)` is fine.",
+        },
+      ],
+
       // ---- TypeScript Strict-ish ----
       "@typescript-eslint/consistent-type-imports": [
         "warn",
@@ -83,7 +93,7 @@ export default defineConfig([
   // 5. Tailwind CSS (v4 + plugin beta)
   // ================================
   {
-    name: "brew-hub-tailwindcss",
+    name: "tailwindcss",
     files: ["**/*.{ts,tsx,js,jsx}"],
     plugins: {
       tailwindcss,

@@ -9,13 +9,11 @@ const Popover = (props: React.ComponentProps<typeof PopoverPrimitive.Root>) => (
   <PopoverPrimitive.Root data-slot="popover" {...props} />
 );
 
-const PopoverTrigger = (
-  props: React.ComponentProps<typeof PopoverPrimitive.Trigger>,
-) => <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />;
+const PopoverTrigger = (props: React.ComponentProps<typeof PopoverPrimitive.Trigger>) => (
+  <PopoverPrimitive.Trigger data-slot="popover-trigger" {...props} />
+);
 
-const PopoverContent = (
-  props: React.ComponentProps<typeof PopoverPrimitive.Content>,
-) => {
+const PopoverContent = (props: React.ComponentProps<typeof PopoverPrimitive.Content>) => {
   const { className, align = "center", sideOffset = 4, ...rest } = props;
   return (
     <PopoverPrimitive.Portal>
@@ -33,8 +31,8 @@ const PopoverContent = (
   );
 };
 
-const PopoverAnchor = (
-  props: React.ComponentProps<typeof PopoverPrimitive.Anchor>,
-) => <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />;
+const PopoverAnchor = (props: React.ComponentProps<typeof PopoverPrimitive.Anchor>) => (
+  <PopoverPrimitive.Anchor data-slot="popover-anchor" {...props} />
+);
 
 export { Popover, PopoverAnchor, PopoverContent, PopoverTrigger };

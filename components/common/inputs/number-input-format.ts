@@ -10,7 +10,9 @@ export function sanitizeNumber(
   allowNegative: boolean,
   decimals: number,
 ): string {
-  if (raw === "") return "";
+  if (raw === "") {
+    return "";
+  }
 
   let s = raw.replace(/,/g, "");
 
@@ -43,7 +45,9 @@ export function sanitizeNumber(
 // the integer part, preserving a trailing "." and fractional zeros while the
 // user is mid-typing.
 export function formatNumber(value: string): string {
-  if (value === "" || value === "-") return value;
+  if (value === "" || value === "-") {
+    return value;
+  }
 
   const negative = value.startsWith("-");
   const body = negative ? value.slice(1) : value;
