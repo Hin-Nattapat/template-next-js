@@ -288,13 +288,13 @@ What you get:
 - **Global dialog**: `useDialog()` from `hooks/use-dialog.ts` — `alert`, `info`, `success`, `warning`, `error`, `confirm`, `confirmDelete`. Returns promises for confirm variants.
 - **Toast**: `import { toast } from "sonner"`.
 
-## 7.1 Derived data — `useMemo` or extract
+## 7.1 Derived data — the React Compiler memoizes
 
-Anything you derive from a query result, props, or another hook (filter, map, find, sort, group) must be either a module-level `const` (if the inputs never change) or wrapped in `useMemo` keyed on its inputs.
+This template enables the React Compiler (`reactCompiler: true` in `next.config.ts`), which keeps derived arrays and objects referentially stable. Write derived values plainly: `const itemOptions = items.filter(...).map(...)`.
 
-- ❌ `<Select options={items.filter(...).map(...)} />` — recreates the array every render and forces downstream memo bailouts.
-- ✅ `const itemOptions = useMemo(() => items.filter(...).map(...), [items])` then `<Select options={itemOptions} />`.
-- Use `useMemo` even when the computation is cheap, because the _array identity_ is the load-bearing thing — child components / TanStack Query / form libraries reference-compare it.
+- Reach for `useMemo` / `useCallback` only for precise control — typically a value used as an `useEffect` dependency, so the effect doesn't fire every render.
+- Never call `form.watch()`; read field values with `useWatch`. `watch` is incompatible with memoization and makes the compiler skip the component.
+- In a project that turns the compiler off, wrap derived arrays and objects in `useMemo` even when cheap — children and libraries compare by identity.
 
 If a constant doesn't depend on render state at all (e.g., `const TYPE_OPTIONS = [...]`), declare it at module scope rather than inside the component.
 
@@ -305,9 +305,9 @@ Heavy conditional logic in JSX (more than two ternaries deep, an IIFE-style `(()
 - ❌ `<Btn>{isEdit ? (pending ? "Saving…" : "Save changes") : (pending ? "Recording…" : "Record")}</Btn>`
 - ✅ A small pure function in the same file (or in `features/<x>/utils/`) called once: `<Btn>{submitLabel(isEdit, pending)}</Btn>`
 - ❌ `const preview = (() => { ... 8 lines of derivation ... })();` followed by `{preview && <Box>...</Box>}`
-- ✅ `const preview = useMemo(() => { ... }, [deps])` followed by the same JSX guard. (Or, if the derivation reads no React state, hoist to a module-level pure function and call it at render.)
+- ✅ `const preview = toPreview(values)` (a pure function, in the file or `features/<x>/utils/`) followed by the same JSX guard.
 
-The underlying rule: **JSX should read like presentation, not like logic.** Ternaries and `&&` are fine for one-line decisions; anything bigger goes into a named const, useMemo, or a pure function.
+The underlying rule: **JSX should read like presentation, not like logic.** Ternaries and `&&` are fine for one-line decisions; anything bigger goes into a named const or a pure function.
 
 ## 7.3 useEffect discipline
 
@@ -315,7 +315,7 @@ The underlying rule: **JSX should read like presentation, not like logic.** Tern
 
 **Don't reach for `useEffect` for any of these — they have better tools:**
 
-- ❌ Computing a value from props/state → `const x = ...` or `useMemo(() => ..., [...])`.
+- ❌ Computing a value from props/state → a plain `const x = ...` (the React Compiler memoizes it).
 - ❌ Reacting to a user click / change → put the logic in the event handler (`onClick`, `onChange`, RHF's `setValue` inside a `Select` callback, etc.).
 - ❌ Resetting child state when a prop changes → lift state up, or use the `key` prop to remount.
 - ❌ Toasts / navigation triggered by a successful mutation → put it in the mutation's `onSuccess`, not in an effect that watches `isSuccess`.

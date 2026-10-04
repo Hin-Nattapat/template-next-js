@@ -14,8 +14,9 @@ The naming and architecture rules an AI agent (or new contributor) must follow l
 - **Forms**: react-hook-form + Zod (`@hookform/resolvers`)
 - **API**: Native `fetch` wrapper with Zod runtime validation (`lib/api-client.ts`); hooks call `apiClient` through TanStack Query
 - **Theming**: `next-themes` (light / dark / system)
+- **i18n**: homegrown, type-checked th/en messages (`i18n/`)
 - **Notifications**: sonner toast + a promise-based dialog system
-- **Tooling**: ESLint flat config, Prettier (with Tailwind plugin), Husky, lint-staged
+- **Tooling**: ESLint flat config, Prettier (with Tailwind plugin), lefthook, gitleaks, React Compiler
 - **Runtime**: Bun (Node 20+ also works)
 
 ## Getting started
@@ -35,10 +36,11 @@ Then open <http://localhost:3000>. The home page links to `/example`, a working 
 | `bun dev`       | Start dev server with Turbopack |
 | `bun run build` | Production build                |
 | `bun start`     | Serve production build          |
-| `bun lint`      | `eslint . --fix`                |
+| `bun lint`      | `eslint . --fix`, then Prettier |
 | `bun format`    | `prettier --write .`            |
+| `bun test`      | Run the colocated `*.test.ts`   |
 
-`husky` + `lint-staged` run ESLint and Prettier on staged files at commit time.
+`lefthook` runs ESLint, Prettier and [gitleaks](https://github.com/gitleaks/gitleaks) on staged files at commit time, and `bun test` before push. Install gitleaks once (`brew install gitleaks`); `bun install` installs the hooks.
 
 ## Project structure
 
@@ -56,8 +58,8 @@ app/                    # routes (thin — render feature components)
 features/<feature>/     # all feature logic lives here
   components/           # one component per file (xxx-page.tsx is the entry point)
   hooks/                # use-xxx.ts
-  services/             # xxx.service.ts + xxx.schema.ts (zod schemas)
-  utils/                # pure helpers
+  services/             # xxx.service.ts, xxx.schema.ts (zod), xxx.keys.ts
+  utils/                # xxx-format.ts, xxx-form.ts, xxx-constants.ts
   types.ts              # entity types
 
 components/
@@ -65,9 +67,10 @@ components/
   common/               # app-wide reusable components, theme provider, dialog root
   form-controls/        # RHF-bound inputs (FormInput, FormSelect, FormInputArea)
 
+i18n/                   # locale, provider, messages/<x>.ts (th default, en)
 stores/                 # Zustand stores (xxx.store.ts → useXxxStore)
 hooks/                  # global hooks (use-dialog, ...)
-lib/                    # api-client, api-error, env, utils
+lib/                    # api-client, api-error, env, format, utils
 types/                  # global types (global.ts, dialog.ts)
 ```
 
@@ -213,7 +216,7 @@ export function useExample(id: string) {
   return useQuery({
     queryKey: examplesKeys.detail(id),
     queryFn: () => getExampleById(id),
-    enabled: Boolean(id),
+    enabled: !!id,
   });
 }
 
@@ -267,8 +270,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import AppButton from "@/components/common/buttons/app-button";
 import FormInput from "@/components/form-controls/form-input";
 import { Form } from "@/components/ui/form";
+import { useCreateExample } from "@/features/example/hooks/use-examples";
 import { createExampleInputSchema } from "@/features/example/services/examples.schema";
 
 type TFormValues = z.infer<typeof createExampleInputSchema>;
@@ -279,17 +284,16 @@ const ExampleForm = () => {
     defaultValues: { name: "", description: "" },
   });
 
-  const onSubmit = form.handleSubmit(values => {
-    // call service here
-    console.log(values);
-  });
+  const { mutate: createExample, isPending } = useCreateExample();
+
+  const handleSubmit = form.handleSubmit(values => createExample(values));
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="flex flex-col gap-4">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <FormInput required name="name" label="Name" />
         <FormInput required name="description" label="Description" />
-        <button type="submit">Save</button>
+        <AppButton type="submit" label="Save" disabled={isPending} />
       </form>
     </Form>
   );
@@ -323,7 +327,9 @@ const Component = () => {
 
   const handleDelete = async () => {
     const ok = await dialog.confirmDelete();
-    if (!ok) return;
+    if (!ok) {
+      return;
+    }
     // proceed with deletion
   };
 
@@ -334,6 +340,17 @@ const Component = () => {
 ```
 
 Variants: `alert`, `info`, `success`, `warning`, `error`, `confirm`, `confirmDelete`. The dialog root is mounted once in `app/layout.tsx` via `<AppDialogRoot />`.
+
+## i18n
+
+Every user-visible string is a message in `i18n/messages/<x>.ts`, defined once per locale with `defineMessages(en, th)`; the `th` object must match the `en` shape or `tsc` fails.
+
+```tsx
+const m = useMessages(exampleMessages); // client component
+const m = await getMessages(homeMessages); // server component
+```
+
+The locale lives in the `locale` cookie (`th` by default) and is switched with `<LanguageToggle />`. `I18nProvider` loads only `common` and `nav`; feature bundles load with their routes. There is no locale in the URL; a public site that needs `/en/...` URLs for SEO should use `next-intl` instead.
 
 ## Theming
 
