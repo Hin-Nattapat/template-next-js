@@ -25,6 +25,7 @@ Talk to the human in Thai. Write everything that lands in a file, a commit or a 
 - Before opening the PR: rebase onto the current remote base, then push with `--force-with-lease`.
 - Stage by explicit path, so local files such as `.claude/settings.local.json` stay out.
 - Open PRs against the default branch, never against another feature branch.
+- Merge with a merge commit (`gh pr merge --merge`), not rebase or squash, so each PR stays visible as its own branch. With several PRs, merge one, rebase the next onto the updated default branch and push `--force-with-lease`, wait for CI, then merge it the same way.
 
 ## brigade
 
