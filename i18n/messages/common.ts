@@ -1,0 +1,36 @@
+import { defineMessages } from "./define-messages";
+
+export const commonMessages = defineMessages(
+  {
+    loading: "Loading…",
+    retry: "Try again",
+    goHome: "Go home",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    language: "Language",
+    thaiLanguage: "Thai",
+    englishLanguage: "English",
+    switchToLight: "Switch to light mode",
+    switchToDark: "Switch to dark mode",
+    errorTitle: "Something went wrong",
+    errorFallback: "An unexpected error occurred.",
+    notFoundTitle: "404",
+    notFoundDescription: "The page you are looking for does not exist.",
+  },
+  {
+    loading: "กำลังโหลด…",
+    retry: "ลองอีกครั้ง",
+    goHome: "กลับหน้าแรก",
+    cancel: "ยกเลิก",
+    confirm: "ยืนยัน",
+    language: "ภาษา",
+    thaiLanguage: "ภาษาไทย",
+    englishLanguage: "ภาษาอังกฤษ",
+    switchToLight: "สลับเป็นโหมดสว่าง",
+    switchToDark: "สลับเป็นโหมดมืด",
+    errorTitle: "เกิดข้อผิดพลาด",
+    errorFallback: "เกิดข้อผิดพลาดที่ไม่คาดคิด",
+    notFoundTitle: "404",
+    notFoundDescription: "ไม่พบหน้าที่คุณต้องการ",
+  },
+);

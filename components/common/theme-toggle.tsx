@@ -5,9 +5,11 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 import AppButton from "@/components/common/buttons/app-button";
+import { useI18n } from "@/i18n/use-i18n";
 
 const ThemeToggle = () => {
   const { resolvedTheme, setTheme } = useTheme();
+  const { common } = useI18n();
   const [mounted, setMounted] = useState(false);
 
   // next-themes can't know which theme to render until after hydration,
@@ -29,7 +31,7 @@ const ThemeToggle = () => {
     <AppButton
       variant="ghost"
       size="icon"
-      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+      aria-label={isDark ? common.switchToLight : common.switchToDark}
       onClick={() => setTheme(isDark ? "light" : "dark")}
     >
       <Icon className="size-4" />
