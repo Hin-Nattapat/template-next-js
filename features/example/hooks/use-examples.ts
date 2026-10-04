@@ -17,7 +17,7 @@ export function useExample(id: string) {
   return useQuery({
     queryKey: examplesKeys.detail(id),
     queryFn: () => getExampleById(id),
-    enabled: Boolean(id),
+    enabled: !!id,
   });
 }
 

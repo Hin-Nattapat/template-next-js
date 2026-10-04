@@ -32,7 +32,8 @@ interface IProps extends React.ComponentProps<typeof Input> {
 }
 
 const AppInput = (props: IProps) => {
-  const { label, required, remark, containerClassName, id, className, ...inputProps } = props;
+  const { label, required, remark, containerClassName, id, className, ...inputProps } =
+    props;
   const autoId = useId();
   const fieldId = id ?? autoId;
 

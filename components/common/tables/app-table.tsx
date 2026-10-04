@@ -59,11 +59,21 @@ const ALIGN_CLASS = {
 } as const;
 
 function compare(a: unknown, b: unknown): number {
-  if (a == null && b == null) return 0;
-  if (a == null) return -1;
-  if (b == null) return 1;
-  if (a instanceof Date && b instanceof Date) return a.getTime() - b.getTime();
-  if (typeof a === "number" && typeof b === "number") return a - b;
+  if (a == null && b == null) {
+    return 0;
+  }
+  if (a == null) {
+    return -1;
+  }
+  if (b == null) {
+    return 1;
+  }
+  if (a instanceof Date && b instanceof Date) {
+    return a.getTime() - b.getTime();
+  }
+  if (typeof a === "number" && typeof b === "number") {
+    return a - b;
+  }
   return String(a).localeCompare(String(b));
 }
 
@@ -92,16 +102,22 @@ const AppTable = <TRow,>(props: IAppTableProps<TRow>) => {
   const sortDir = controlled ? (props.sortDir ?? "asc") : internalSortDir;
 
   const sortedData = useMemo(() => {
-    if (controlled || !sortBy) return data;
+    if (controlled || !sortBy) {
+      return data;
+    }
     const column = columns.find(c => c.key === sortBy);
-    if (!column?.sortAccessor) return data;
+    if (!column?.sortAccessor) {
+      return data;
+    }
     const accessor = column.sortAccessor;
     const dirMul = sortDir === "asc" ? 1 : -1;
     return [...data].sort((a, b) => compare(accessor(a), accessor(b)) * dirMul);
   }, [controlled, data, columns, sortBy, sortDir]);
 
   const handleHeaderClick = (column: IAppTableColumn<TRow>) => {
-    if (!column.sortable) return;
+    if (!column.sortable) {
+      return;
+    }
     if (controlled) {
       props.onSortChange?.(column.key);
       return;

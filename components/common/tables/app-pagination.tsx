@@ -30,13 +30,21 @@ const SIZE_OPTIONS: IOption[] = [10, 25, 50, 100].map(n => ({
 
 // pageWindow returns page numbers to render, with -1 sentinels for ellipses.
 function pageWindow(page: number, last: number): number[] {
-  if (last <= 7) return Array.from({ length: last }, (_, i) => i + 1);
+  if (last <= 7) {
+    return Array.from({ length: last }, (_, i) => i + 1);
+  }
   const out: number[] = [1];
   const start = Math.max(2, page - 1);
   const end = Math.min(last - 1, page + 1);
-  if (start > 2) out.push(-1);
-  for (let p = start; p <= end; p++) out.push(p);
-  if (end < last - 1) out.push(-1);
+  if (start > 2) {
+    out.push(-1);
+  }
+  for (let p = start; p <= end; p++) {
+    out.push(p);
+  }
+  if (end < last - 1) {
+    out.push(-1);
+  }
   out.push(last);
   return out;
 }
@@ -72,7 +80,9 @@ const AppPagination = (props: IProps) => {
                 className={cn(page <= 1 && "pointer-events-none opacity-50")}
                 onClick={e => {
                   e.preventDefault();
-                  if (page > 1) onPageChange(page - 1);
+                  if (page > 1) {
+                    onPageChange(page - 1);
+                  }
                 }}
                 href="#"
               />
@@ -103,7 +113,9 @@ const AppPagination = (props: IProps) => {
                 className={cn(page >= lastPage && "pointer-events-none opacity-50")}
                 onClick={e => {
                   e.preventDefault();
-                  if (page < lastPage) onPageChange(page + 1);
+                  if (page < lastPage) {
+                    onPageChange(page + 1);
+                  }
                 }}
                 href="#"
               />
