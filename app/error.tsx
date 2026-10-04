@@ -2,7 +2,9 @@
 
 import { useEffect } from "react";
 
-import { Button } from "@/components/ui/button";
+import AppButton from "@/components/common/buttons/app-button";
+import { commonMessages } from "@/i18n/messages/common";
+import { useMessages } from "@/i18n/use-i18n";
 
 interface IProps {
   error: Error & { digest?: string };
@@ -12,17 +14,20 @@ interface IProps {
 const ErrorBoundary = (props: IProps) => {
   const { error, reset } = props;
 
+  const m = useMessages(commonMessages);
+
+  // Logging is an outside-world side effect; it must run once per error, not per render.
   useEffect(() => {
     console.error(error);
   }, [error]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
-      <h2 className="text-2xl font-semibold">Something went wrong</h2>
+      <h2 className="text-2xl font-semibold">{m.errorTitle}</h2>
       <p className="text-muted-foreground max-w-md text-sm">
-        {error.message || "An unexpected error occurred."}
+        {error.message || m.errorFallback}
       </p>
-      <Button onClick={reset}>Try again</Button>
+      <AppButton label={m.retry} onClick={reset} />
     </div>
   );
 };

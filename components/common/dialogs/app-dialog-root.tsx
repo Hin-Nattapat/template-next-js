@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useI18n } from "@/i18n/use-i18n";
 import { cn } from "@/lib/utils";
 import { useDialogStore } from "@/stores/dialog.store";
 import type { IAlertConfig, IConfirmConfig } from "@/types/dialog";
@@ -40,11 +41,14 @@ const variantStyles = {
 };
 
 const AppDialogRoot = () => {
+  const { common } = useI18n();
   const dialog = useDialogStore(state => state.dialog);
   const closeDialog = useDialogStore(state => state.closeDialog);
   const handleConfirm = useDialogStore(state => state.handleConfirm);
 
-  if (!dialog) return null;
+  if (!dialog) {
+    return null;
+  }
 
   if (dialog.type === "alert") {
     const config = dialog.config as IAlertConfig;
@@ -80,7 +84,7 @@ const AppDialogRoot = () => {
             <AlertDialogDescription>{config.description}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{config.cancelText || "Cancel"}</AlertDialogCancel>
+            <AlertDialogCancel>{config.cancelText || common.cancel}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirm}
               className={
@@ -89,7 +93,7 @@ const AppDialogRoot = () => {
                   : ""
               }
             >
-              {config.confirmText || "Confirm"}
+              {config.confirmText || common.confirm}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
