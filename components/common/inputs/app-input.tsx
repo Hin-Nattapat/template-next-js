@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { Input } from "../../ui/input";
 
 // AppInput is the canonical text-input used everywhere in the app.
-// Wrap reasons (per CLAUDE.md §3.6):
+// Wrap reasons (per STYLE.md §3):
 //
 //   1. Typed `label` prop bakes the "label + input" pair into one call
 //      site — same DX as `AppButton`'s typed `label` / `icon` props.

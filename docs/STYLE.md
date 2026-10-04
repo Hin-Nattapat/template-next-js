@@ -1,11 +1,16 @@
+---
+paths:
+  - "**/*.{ts,tsx,css}"
+---
+
 # Next.js style
 
-Personal frontend style for every Next.js app (App Router, React 19, TypeScript strict, Tailwind v4, shadcn). It was merged from the rule sheets of klang-web, oobi-web, brew-hub-web and this template, then settled one decision at a time on 2026-10-04.
+How code is written in every Next.js app (App Router, React 19, TypeScript strict, Tailwind v4, shadcn). This file is the single source for it: Claude Code loads it automatically when a TS, TSX or CSS file is touched (`.claude/rules/style.md` links here), and `AGENTS.md` tells every other agent to read it. It was merged from the rule sheets of klang-web, oobi-web, brew-hub-web and this template, then settled one decision at a time on 2026-10-04.
 
-- **Linter first.** Anything ESLint, Prettier or `tsc` can check lives in config, not here. §17 lists what tooling already covers.
-- **New and touched code only.** Never sweep untouched files to match this guide. When you edit a component, bring that component in line.
-- **The plan wins for task-specific choices.** This file holds the defaults that apply to every project.
-- `.claude/CLAUDE.md` is the agent rule sheet for this template; this file is the human-readable reference behind it.
+- **Linter first.** Anything ESLint, Prettier or `tsc` can check lives in config; §17 lists what tooling already covers.
+- **New and touched code only.** When you edit a component, bring that component in line; leave untouched files as they are.
+- **The plan wins for task-specific choices.** This file holds the defaults for every project.
+- [`ARCHITECTURE.md`](ARCHITECTURE.md) explains how the template's pieces work. Commit and PR rules and the "done" checks live in [`AGENTS.md`](../AGENTS.md).
 
 ---
 
@@ -77,9 +82,10 @@ No logic, fetching or state in `app/**/page.tsx`. Dynamic routes are the one exc
 
 ### Sub-folders and utils
 
-- Past ~8 files, sub-folder `features/<x>/components/` by UI role: `pages/`, `sections/`, `forms/`, `tables/`, `dialogs/`, `shared/` (used by two or more of the others). Create a sub-folder only once it has two files. A multi-step flow spreads across the buckets; it never gets its own folder. `hooks/`, `services/`, `utils/` and `types.ts` stay flat.
+- Past ~8 files, sub-folder `features/<x>/components/` by UI role: `pages/` (one per route: `<x>-page.tsx`, `new-<x>-page.tsx`, `edit-<x>-page.tsx`), `sections/`, `forms/`, `tables/`, `dialogs/`, `shared/` (used by two or more of the others). Create a sub-folder only once it has two files. A multi-step flow spreads across the buckets; it never gets its own folder. `hooks/`, `services/`, `utils/` and `types.ts` stay flat.
 - `utils/` has fixed file roles: `<x>-format.ts` turns a value into display text, `<x>-form.ts` holds form↔API transforms, and `<x>-constants.ts` holds enums and static option sets. Never a vague `helpers.ts`; a util that fits none of these is in the wrong place.
 - Generic formatters (money, number, percent, date) live in `lib/format.ts`. Check it before writing another `Intl` wrapper.
+- Layout-only wrappers (no business meaning) go in `components/common/` when app-wide, otherwise in the feature with a layout suffix (`<x>-section.tsx`, `<x>-card-grid.tsx`).
 
 ### New features
 
@@ -158,7 +164,7 @@ const TxnForm = (props: IProps) => {
 };
 ```
 
-When sections 3–6 pile up, lift sections 2–6 into a feature hook (`use-<x>-form.ts`) that returns a view object. The component becomes hook(s) → guards → JSX.
+When sections 3–6 pile up, lift sections 2–6 into a feature hook (`use-<x>-form.ts`) that returns a view object, keeping the same order inside the hook. The component becomes hook(s) → guards → JSX.
 
 ### Pages and splitting
 
@@ -178,7 +184,7 @@ When sections 3–6 pile up, lift sections 2–6 into a feature hook (`use-<x>-f
 
 **Reuse before writing:**
 
-1. shadcn (`bunx shadcn@latest add <name>`)
+1. shadcn (`bunx shadcn@latest add <name>`; with no name it lists every component)
 2. `components/common/`
 3. promote from a sibling feature
 
@@ -242,18 +248,7 @@ asset={holdingAsset}
 
 ### Control flow
 
-**Always brace an early return.** `curly: all` enforces it.
-
-```ts
-// ✅
-if (!ok) {
-  return;
-}
-// ❌
-if (!ok) return;
-```
-
-**Truthiness uses `!!x` / `!x` or a plain truthy check.** Never `Boolean(x)` and never `x !== ""`. `.filter(Boolean)` is fine: there `Boolean` is a callback, not a conversion.
+**Every `if` body is braced** (`curly: all` autofixes it). **Truthiness uses `!!x` / `!x` or a plain truthy check** such as `if (query.trim())`; `Boolean(x)` calls are linted out, and `x !== ""` is spelled as a truthy check too. `.filter(Boolean)` is fine: there `Boolean` is a callback, not a conversion.
 
 ---
 
@@ -389,7 +384,7 @@ Legitimate effects:
 - Use `react-hook-form` + `zodResolver(schema)`, wrap the form in `<Form {...form}>`, and use the bound controls in `components/form-controls/` (they read `useFormContext`).
 - Wrap every control in `<FormControl>`; it injects `id`, `aria-invalid`, `aria-describedby` and `aria-required`. Required fields pass `required`. A control without the wrapper silently loses its label and error.
 - **Read field values with `useWatch`, never `form.watch()`.** `watch` mutates behind a stable reference, which breaks memoization, both manual and the compiler's. The compiler skips any component that uses it.
-- One Zod schema serves both the form and the API. It lives next to the service. Types come from `z.infer`, and schemas are checked against domain types with `satisfies z.ZodType<T>`:
+- Schemas live next to the service. The input schema validates the form, and the service sends the already-validated values; response schemas validate what comes back. Types come from `z.infer`, and schemas are checked against domain types with `satisfies z.ZodType<T>`:
 
   ```ts
   export const createExampleInputSchema = z.object({
@@ -498,8 +493,7 @@ const m = await getMessages(accountsMessages); // server component
 
 - The `th` object must match the `en` shape, so a missing key fails `tsc`.
 - Interpolation is a plain TS function, not a format string.
-- **Keep one messages file per feature.** The provider loads only `common` and `nav`; feature bundles load with their routes, so code splitting holds.
-- The locale lives in a cookie (`th` by default); there is no locale in the URL.
+- **Keep one messages file per feature,** so feature bundles load with their routes (how the provider loads them is in ARCHITECTURE.md).
 - **Need locale URLs for SEO** (`/en/...` on a public site)? Use `next-intl` for that project instead.
 
 ### Copy
@@ -550,11 +544,9 @@ setMode("amount"); // ❌ won't compile, which is the point
 
 ## 13. TypeScript
 
-- `tsconfig` is strict: `strict`, `noImplicitReturns`, `noFallthroughCasesInSwitch`, `noUncheckedIndexedAccess`, `allowJs: false`, `isolatedModules`, path alias `@/*`.
-- No `any`. Use `unknown` plus a type guard, or define the type.
-- Type-only imports use `import type`, or an inline `type` specifier.
-- Don't re-export types through stub files just to tidy imports.
-- Remove unused variables and arguments, or prefix them with `_`.
+- `tsconfig.json` is strict, and the linter covers `any`, type-only imports and unused code (§17).
+- Where a type is unknown, use `unknown` plus a type guard, or define the type.
+- Import types from where they are defined; skip stub files that only re-export them.
 
 ---
 
@@ -573,7 +565,6 @@ setMode("amount"); // ❌ won't compile, which is the point
 ```
 
 - **One or two lines is a hard ceiling.** Reasoning that needs a paragraph goes in a doc, with at most a pointer in the code.
-- **Every `useEffect` gets one line saying why** an effect is the right tool.
 - **No history or process:** no task or PR numbers, no "was X before", no commented-out code, no `TODO` without an issue link.
 - **No dividers or ceremony comments,** and no `console.log`.
 - **When you touch a component,** delete the comments in it that break these rules.
@@ -586,25 +577,18 @@ setMode("amount"); // ❌ won't compile, which is the point
 - `bun test`, with test files colocated next to what they test as `<x>.test.ts` / `<x>.test.tsx`.
 - Test names are plain sentences: `test("editing takes the saved transaction back out of the holding", …)`.
 - Keep logic in pure functions (transforms, formatters, constants) so it tests without React or fetch.
-- Before reporting done, run `bun lint`, `bunx tsc --noEmit` and `bun test`.
 
 ---
 
 ## 16. Tooling
 
-| Tool                | Setup                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Prettier            | `printWidth 90`, `tabWidth 2`, semicolons, double quotes, `trailingComma: "all"`, `arrowParens: "avoid"`, `endOfLine: "lf"`, `prettier-plugin-tailwindcss`                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ESLint (flat)       | `eslint-config-next` core-web-vitals + typescript, `eslint-config-prettier`, `react-hooks` recommended, `simple-import-sort`, `unused-imports`, `no-console`/`no-debugger`, `consistent-type-imports`, `tailwindcss/classnames-order`. Plus `curly: ["error", "all"]` (after the prettier config) and `no-restricted-syntax` on `CallExpression[callee.name='Boolean']`. Keep `no-implicit-coercion` off. The `lint` script is `eslint . --fix && prettier --write .`, because the `curly` autofix emits one-line braces (`{return 0;}`) that Prettier has to reflow. |
-| React Compiler      | `reactCompiler: true` in `next.config.ts` + `babel-plugin-react-compiler`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| lefthook pre-commit | ESLint `--fix` and Prettier on `{staged_files}` with `stage_fixed: true`; `gitleaks git --pre-commit --staged --redact`                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| lefthook pre-push   | `bun test`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| shadcn              | `new-york`, `rsc: true`, `baseColor: neutral`, CSS variables, `lucide` icons; add components with `bunx shadcn@latest add <name>`                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+The config files are the source of truth: `eslint.config.mjs`, `.prettierrc`, `tsconfig.json`, `next.config.ts`, `lefthook.yml`, `components.json` and the `package.json` scripts. What they don't say:
 
-- Scripts: `lint` runs ESLint `--fix` then Prettier, and `test` is `bun test`.
-- Import icons directly from `lucide-react`; there's no central icon registry.
-- Use `next/image` for images and the Metadata API for SEO.
-- In a monorepo, one `lefthook.yml` at the git root dispatches per app with `root:`. git allows only one `core.hooksPath`, so husky and lefthook side by side silently disable each other. husky's `prepare` also fails when `package.json` sits below the git root.
+- **`bun lint` runs ESLint `--fix` and then Prettier,** because the `curly` autofix emits one-line braces (`{return 0;}`) that Prettier has to reflow.
+- **Keep `no-implicit-coercion` off**: it enforces the opposite of the `!!x` rule.
+- **Import icons directly from `lucide-react`**; there's no central icon registry.
+- **Use `next/image` for images and the Metadata API for SEO.**
+- **In a monorepo,** one `lefthook.yml` at the git root dispatches per app with `root:`. git allows only one `core.hooksPath`, so husky and lefthook side by side silently disable each other. husky's `prepare` also fails when `package.json` sits below the git root.
 
 ---
 
@@ -627,33 +611,6 @@ setMode("amount"); // ❌ won't compile, which is the point
 
 ---
 
-## 18. Commits and pull requests
-
-**Commit messages:** Conventional Commits with `init · feat · fix · refactor · chore · docs · style · test`. Write the subject in the imperative, at most 90 characters, and put details in the body.
-
-**While working,** commit as often as you like.
-
-**Before push and PR, consolidate to 4–6 commits, never more than 8.**
-
-- Group by concern: docs apart from code; code in dependency order (types/schema/service → hooks → components → route).
-- Each commit builds and passes lint and tests on its own.
-- Fold every review fix into the commit it belongs to.
-
-**Before opening the PR:**
-
-- Run `bun lint`, `bunx tsc --noEmit` and `bun test`.
-- Rebase onto the current remote base, and push with `--force-with-lease`.
-- Stage by explicit path, never `git add -A`.
-- Never open a PR against another feature branch.
-
----
-
-## 19. Stack
-
-Next.js 16 (App Router), React 19, TypeScript strict, Bun, Tailwind v4, shadcn (new-york), TanStack Query 5, Zustand 5, react-hook-form + Zod 4, next-themes, sonner, lucide-react, React Compiler, lefthook.
-
----
-
 ## Appendix: why these choices
 
 These decisions were settled when the source projects disagreed or said nothing. brew-hub-web (2025-12) is the first-generation style; klang, oobi and this template replaced it, so its rules lost wherever they conflict.
@@ -673,4 +630,6 @@ These decisions were settled when the source projects disagreed or said nothing.
 
 ## Appendix: where the template doesn't match this guide yet
 
-None. Add a row here when the guide moves ahead of the template.
+| Gap                                                               | Fix                                                                            |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| `app/globals.css` declares `@custom-variant dark (&:is(.dark *))` | Switch to `(&:where(.dark, .dark *))` (§9), then check dark mode on every page |

@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
 // The app's standard card surface. Wraps the shadcn `Card` primitive (per
-// CLAUDE.md §3.6 — wrap ui/ rather than re-roll) and tunes its defaults to the
+// STYLE.md §3 — wrap ui/ rather than re-roll) and tunes its defaults to the
 // flat look features were hand-rolling across ~33 sites: rounded-lg / p-6 /
 // shadow-xs with no inter-row gap, instead of shadcn's rounded-xl / py-6 /
 // shadow-sm. Override anything via className (tailwind-merge wins); all div
