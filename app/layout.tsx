@@ -7,7 +7,8 @@ import type { ReactNode } from "react";
 import AppDialogRoot from "@/components/common/dialogs/app-dialog-root";
 import ThemeProvider from "@/components/common/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { getLocale } from "@/i18n/get-messages";
+import { getLocale, getMessages } from "@/i18n/get-messages";
+import { metaMessages } from "@/i18n/messages/meta";
 import I18nProvider from "@/i18n/provider";
 
 import Providers from "./providers";
@@ -22,10 +23,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Next.js Template",
-  description: "Next.js template",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const m = await getMessages(metaMessages);
+  return { title: m.title, description: m.description };
+}
 
 interface IProps {
   children: ReactNode;

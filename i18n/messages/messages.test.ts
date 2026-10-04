@@ -3,9 +3,16 @@ import { expect, test } from "bun:test";
 import { commonMessages } from "./common";
 import { exampleMessages } from "./example";
 import { homeMessages } from "./home";
+import { metaMessages } from "./meta";
 import { navMessages } from "./nav";
 
-const bundles = { commonMessages, exampleMessages, homeMessages, navMessages };
+const bundles = {
+  commonMessages,
+  exampleMessages,
+  homeMessages,
+  metaMessages,
+  navMessages,
+};
 
 test("every bundle has the same keys in Thai and English", () => {
   for (const bundle of Object.values(bundles)) {
