@@ -11,9 +11,13 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { cn } from "@/lib/utils";
+import type { IOption } from "@/types/global";
 import { pageWindow } from "@/utils/pagination";
 
-import { SIZE_OPTIONS } from "./app-pagination.constants";
+const SIZE_OPTIONS: IOption[] = [10, 25, 50, 100].map(n => ({
+  value: String(n),
+  label: `${n} / page`,
+}));
 
 interface IProps {
   page: number;

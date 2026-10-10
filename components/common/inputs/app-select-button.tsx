@@ -1,5 +1,9 @@
 import { cn } from "@/lib/utils";
-import type { ISelectButtonOption } from "@/types/inputs";
+
+export interface ISelectButtonOption<T extends string> {
+  value: T;
+  label: string;
+}
 
 interface IProps<T extends string> {
   options: ISelectButtonOption<T>[];

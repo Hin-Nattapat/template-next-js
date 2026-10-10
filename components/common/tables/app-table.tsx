@@ -14,10 +14,31 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import type { IAppTableColumn, TAppTableSortDir } from "@/types/table";
 import { compareValues } from "@/utils/table";
 
-import { ALIGN_CLASS } from "./app-table.constants";
+export type TAppTableSortDir = "asc" | "desc";
+
+export interface IAppTableColumn<TRow> {
+  /** Stable identifier — used for the React key + sort tracking. */
+  key: string;
+  header: ReactNode;
+  cell: (row: TRow) => ReactNode;
+  align?: "left" | "right" | "center";
+  className?: string;
+  headerClassName?: string;
+  width?: string;
+  sortable?: boolean;
+  /** Required when sortable=true; lets the table extract a comparable value. */
+  sortAccessor?: (row: TRow) => string | number | Date | null | undefined;
+  /** Renders a ⓘ beside the header that explains the column on hover/focus. */
+  headerTooltip?: string;
+}
+
+const ALIGN_CLASS = {
+  left: "text-left",
+  center: "text-center",
+  right: "text-right",
+} as const;
 
 export interface IAppTableProps<TRow> {
   columns: IAppTableColumn<TRow>[];

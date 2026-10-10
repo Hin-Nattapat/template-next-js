@@ -1,9 +1,16 @@
-import type { VariantProps } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { keyHintVariants } from "./app-kbd.constants";
+const keyHintVariants = cva("rounded px-1.5 font-mono text-xs", {
+  variants: {
+    tone: {
+      accent: "bg-accent text-accent-foreground",
+      muted: "bg-muted",
+    },
+  },
+});
 
 interface IProps extends VariantProps<typeof keyHintVariants> {
   children: ReactNode;

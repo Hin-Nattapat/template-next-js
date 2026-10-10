@@ -1,5 +1,7 @@
 "use client";
 
+import { AlertTriangle, CheckCircle, Info, XCircle } from "lucide-react";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +26,19 @@ import { cn } from "@/lib/utils";
 import { useDialogStore } from "@/stores/dialog.store";
 import type { IAlertConfig, IConfirmConfig } from "@/types/dialog";
 
-import { variantIcons, variantStyles } from "./app-dialog-root.constants";
+const variantIcons = {
+  info: Info,
+  success: CheckCircle,
+  warning: AlertTriangle,
+  error: XCircle,
+};
+
+const variantStyles = {
+  info: "text-blue-600",
+  success: "text-green-600",
+  warning: "text-yellow-600",
+  error: "text-red-600",
+};
 
 const AppDialogRoot = () => {
   const { common } = useI18n();

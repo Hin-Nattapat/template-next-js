@@ -2,10 +2,21 @@ import "client-only";
 
 import type { z } from "zod";
 
-import type { TBodyOptions, TRequestOptions } from "@/types/http";
 import { HttpStatus } from "@/types/http.constants";
 
 import { ApiError } from "../api-error";
+
+export type TQueryValue = string | number | boolean | null | undefined;
+
+export type TRequestOptions = {
+  query?: Record<string, TQueryValue>;
+  headers?: HeadersInit;
+  signal?: AbortSignal;
+};
+
+export type TBodyOptions<TBody> = TRequestOptions & {
+  body?: TBody;
+};
 
 function buildUrl(path: string, query?: TRequestOptions["query"]): string {
   // Always use relative URLs. The browser resolves against the FE origin,
