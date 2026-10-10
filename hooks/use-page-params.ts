@@ -4,14 +4,7 @@ import type { Route } from "next";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 
-import { SortDir } from "@/lib/pagination";
-
-export interface IPageParamsState {
-  page: number;
-  size: number;
-  sort: string;
-  dir: SortDir;
-}
+import { type IPageParamsState, SortDir } from "@/types/pagination";
 
 export function usePageParams(defaultSize = 25) {
   const router = useRouter();

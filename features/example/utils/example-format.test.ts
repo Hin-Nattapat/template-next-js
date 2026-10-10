@@ -1,7 +1,11 @@
 import { expect, test } from "bun:test";
 
 import type { TExample } from "../types";
-import { formatExampleLabel, sortExamplesByName } from "./example-format";
+import {
+  formatExampleLabel,
+  sortExamplesByName,
+  toCategoryOptions,
+} from "./example-format";
 
 const makeExample = (name: string): TExample => ({
   id: name,
@@ -21,4 +25,14 @@ test("examples are sorted by name without touching the input", () => {
 
   expect(sorted.map(e => e.name)).toEqual(["Alpha", "Bravo", "Charlie"]);
   expect(input.map(e => e.name)).toEqual(["Charlie", "Alpha", "Bravo"]);
+});
+
+test("category options carry the value and its label", () => {
+  const options = toCategoryOptions(n => `Option ${n}`);
+
+  expect(options).toEqual([
+    { value: "1", label: "Option 1" },
+    { value: "2", label: "Option 2" },
+    { value: "3", label: "Option 3" },
+  ]);
 });

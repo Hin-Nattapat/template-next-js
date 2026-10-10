@@ -1,19 +1,35 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  type UseMutationResult,
+  useQuery,
+  useQueryClient,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 
 import { examplesKeys } from "../services/examples.keys";
 import { createExample, getExampleById, getExamples } from "../services/examples.service";
-import type { TCreateExampleInput } from "../types";
+import type { TCreateExampleInput, TExample } from "../types";
+import { sortExamplesByName } from "../utils/example-format";
 
-export function useExamples() {
+export type TUseExamplesReturn = UseQueryResult<TExample[], Error>;
+export type TUseExampleReturn = UseQueryResult<TExample, Error>;
+export type TUseCreateExampleReturn = UseMutationResult<
+  TExample,
+  Error,
+  TCreateExampleInput
+>;
+
+export function useExamples(): TUseExamplesReturn {
   return useQuery({
     queryKey: examplesKeys.list(),
     queryFn: () => getExamples(),
+    select: response => sortExamplesByName(response.items),
   });
 }
 
-export function useExample(id: string) {
+export function useExample(id: string): TUseExampleReturn {
   return useQuery({
     queryKey: examplesKeys.detail(id),
     queryFn: () => getExampleById(id),
@@ -21,13 +37,14 @@ export function useExample(id: string) {
   });
 }
 
-export function useCreateExample() {
+export function useCreateExample(): TUseCreateExampleReturn {
   const queryClient = useQueryClient();
 
+  const handleCreated = () =>
+    queryClient.invalidateQueries({ queryKey: examplesKeys.lists() });
+
   return useMutation({
-    mutationFn: (input: TCreateExampleInput) => createExample(input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: examplesKeys.lists() });
-    },
+    mutationFn: createExample,
+    onSuccess: handleCreated,
   });
 }

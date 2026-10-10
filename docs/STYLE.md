@@ -28,68 +28,132 @@ How code is written in every Next.js app (App Router, React 19, TypeScript stric
 
 ## 2. Layout
 
-### Folder map
+### Where a piece of code goes
+
+Two questions, in order. Ask them for every type, constant, schema and helper you write.
+
+**1. What kind of code is it?** Ask top to bottom and stop at the first yes:
+
+1. A type, interface or enum only: **types**.
+2. A fixed value (string, number, map, regex, cva variants): **constants**.
+3. A zod schema that validates outside data: **schemas**.
+4. A pure function (same input, same output, no I/O, no framework): **utils**.
+5. Code that sets up or wraps something outside (framework, network, env, cookies, crypto, a library's config): **lib**. Split by side: `lib/server/` is server-only, `lib/client/` is browser-only, `lib/` itself is shared.
+6. A React hook, a component or app-wide state: **hooks**, **components**, **stores**.
+
+**2. Who uses it?** One feature: it lives inside `features/<x>/`. Two or more features: it lives at app level. Move a piece up only when a second feature actually uses it.
+
+The two levels use the same names:
+
+```
+features/<x>/                          app level (project root)
+  types.ts                             types/<topic>.ts
+  constants.ts                         types/<topic>.constants.ts   (types and constants share types/)
+  services/<x>.schema.ts               schemas/<topic>.schema.ts
+  utils/<x>-<topic>.ts                 utils/<topic>.ts
+  hooks/                               hooks/
+  components/                          components/common/
+  services/<x>.service.ts              lib/            (app level only)
+                                       stores/         (app level only)
+```
+
+The rest of the tree:
 
 ```
 app/                         routes only: thin page files, layouts, route groups
   (public)/ (app)/ ...       route groups
   api/[...proxy]/route.ts    BFF proxy to the backend
-  error.tsx loading.tsx not-found.tsx
+  error.tsx loading.tsx not-found.tsx   (a segment may have its own not-found.tsx)
 features/<x>/
   components/                <x>-page.tsx + sections (sub-foldered past ~8 files)
-  hooks/                     use-<x>.ts
+  hooks/                     use-<x>.ts, use-<x>-view.ts (page view state)
   services/                  <x>.service.ts, <x>.schema.ts, <x>.keys.ts
-  utils/                     <x>-format.ts, <x>-form.ts, <x>-constants.ts
-  types.ts
+  utils/                     <x>-format.ts, <x>-form.ts (+ their tests)
 components/
   ui/                        shadcn primitives: don't modify for app tweaks
   common/                    App* wrappers and app-wide components
+    states/                  AppViewState, AppStateMessage, AppLoadError
   form-controls/             RHF-bound inputs (useFormContext)
+types/                       global.ts, pagination.ts, http.constants.ts, view-state.ts, ...
+schemas/                     pagination.schema.ts, ... (schemas two features share)
+utils/                       format.ts, view-state.ts, number-input.ts, pagination.ts, table.ts, ... (+ tests)
 hooks/                       cross-feature hooks only
 stores/                      Zustand: <x>.store.ts, app-wide state only
 i18n/                        locale, provider, messages/<x>.ts
-lib/                         api-client.ts, api-error.ts, env.ts, format.ts, utils.ts
-types/global.ts              truly shared types (IOption, IPaginatedResponse<T>)
+lib/                         shared: api-error.ts, utils.ts (cn)
+lib/server/                  server-only: env.ts, env.schema.ts (`import "server-only"`)
+lib/client/                  browser-only: api-client, query-client (`import "client-only"`)
 ```
 
-### Placement
+**Exceptions.**
+
+- `lib/utils.ts` (`cn`) stays where it is: shadcn's `components.json` points at it.
+- A `lib/` module keeps `<module>.constants.ts` (or `<module>.schema.ts`) beside it for constants other files share, such as a cookie name used by a route and the proxy (`lib/client/query-client.constants.ts`, `lib/server/env.schema.ts`). A lib module's own option and param types that callers pass in are exported from the module file.
+
+**Where the rule is strict and where it relaxes.**
+
+- **`features/`: strict.** Each feature keeps `types.ts` and `constants.ts` at its root and pure helpers in `utils/`. A component or hook file holds only the component or hook, plus `IProps`, a hook's own params interface and its `TUse<X>Return`. Constants, schemas, other types and pure helpers go where the questions above send them.
+- **`components/common/`: private things stay in the file.** A component may keep constants and types in its own file when only that file uses them (`ALIGN_CLASS`, `SIZE_OPTIONS`, cva variants, icon maps), or when they are types a caller needs to build the props (`IAppTableColumn`, `IComboboxOption`), which may be exported. They sit at the top of the file right after the imports, never between code. When another file needs one, it moves out by the two questions above. There is no `<component>.constants.ts` beside a component.
+- **Logic worth a test goes to `utils/`.** Any function with real logic (`pageWindow`) goes to a utils file with a colocated test, even with a single user. A plain lookup map or option list stays in the file that uses it.
+
+- Tailwind classes are not magic strings: write a className used once inline in the JSX; move classes to constants only as cva variants or when two or more components share them.
+- A file is named for its contents (`crypto.ts`, `keyboard.ts`), never `helpers.ts`, and a rule or value lives in exactly one place. A second copy is moved, not tolerated.
+- Service-local types stay in the service file (a `z.infer` type beside its schema counts); never dump them into `types/global.ts`.
+
+### Placement by name
 
 | What          | Path                                   | Naming                               |
 | ------------- | -------------------------------------- | ------------------------------------ |
 | Feature page  | `features/<x>/components/<x>-page.tsx` | `const XPage`                        |
 | Feature hook  | `features/<x>/hooks/use-<x>.ts`        | `useX` → `TUseXReturn`               |
+| View state    | `features/<x>/hooks/use-<x>-view.ts`   | `useXView` → `TViewState<T>`         |
 | Service       | `features/<x>/services/<x>.service.ts` | named function exports               |
 | Schema        | `features/<x>/services/<x>.schema.ts`  | once schemas grow                    |
 | Query keys    | `features/<x>/services/<x>.keys.ts`    | `<x>Keys` factory                    |
 | Feature types | `features/<x>/types.ts`                | entities, inputs                     |
+| Constants     | `features/<x>/constants.ts`            | enums, option sets, UPPER_SNAKE      |
 | Messages      | `i18n/messages/<x>.ts`                 | `xMessages = defineMessages(en, th)` |
 | Store         | `stores/<x>.store.ts`                  | `useXStore`, `TXState`               |
-
-**Promote types up only when they are actually shared.** Service-local types stay in the service file; never dump them into `types/global.ts`.
 
 ### Route files are thin
 
 ```tsx
-// app/(app)/insights/page.tsx
-import InsightsPage from "@/features/insights/components/insights-page";
+// app/(public)/example/[id]/page.tsx (illustrative: the template ships no dynamic route)
+import { notFound } from "next/navigation";
 
-const Page = () => <InsightsPage />;
+import ExampleItemPage from "@/features/example/components/example-item-page";
+import { exampleIdParamSchema } from "@/features/example/services/examples.schema";
+
+const Page = async (props: PageProps<"/example/[id]">) => {
+  const { params } = props;
+  const { id } = await params;
+  const parsedId = exampleIdParamSchema.safeParse(id);
+  if (!parsedId.success) {
+    notFound();
+  }
+
+  return <ExampleItemPage id={parsedId.data} />;
+};
 
 export default Page;
 ```
 
-No logic, fetching or state in `app/**/page.tsx`. Dynamic routes are the one exception to body-destructuring: they `await params` and pass the values down.
+A route file only reads `params` and `searchParams` and passes values down. No logic, fetching or state in `app/**/page.tsx`. A page with no params is just `const Page = () => <ExamplePage />;`.
+
+- Type the props with Next's generated `PageProps<"/route">`, `LayoutProps<"/route">` and `RouteContext<"/route">` (run `bunx next typegen`); never a hand-written `IProps` for them.
+- Destructure `props` first, then parse each value with a schema as `const parsedX = xSchema.safeParse(x)`. An invalid param calls `notFound()`.
+- A dynamic segment that can 404 has its own `not-found.tsx` beside `page.tsx`. It is a client component that renders `AppStateMessage` (title, description, a back action), so it looks like the box the feature shows when an id is not in its data. The root `app/not-found.tsx` stays for everything else.
 
 ### Sub-folders and utils
 
-- Past ~8 files, sub-folder `features/<x>/components/` by UI role: `pages/` (one per route: `<x>-page.tsx`, `new-<x>-page.tsx`, `edit-<x>-page.tsx`), `sections/`, `forms/`, `tables/`, `dialogs/`, `shared/` (used by two or more of the others). Create a sub-folder only once it has two files. A multi-step flow spreads across the buckets; it never gets its own folder. `hooks/`, `services/`, `utils/` and `types.ts` stay flat.
-- `utils/` has fixed file roles: `<x>-format.ts` turns a value into display text, `<x>-form.ts` holds form↔API transforms, and `<x>-constants.ts` holds enums and static option sets. Never a vague `helpers.ts`; a util that fits none of these is in the wrong place.
-- Generic formatters (money, number, percent, date) live in `lib/format.ts`. Check it before writing another `Intl` wrapper.
+- Past ~8 files, sub-folder `features/<x>/components/` by UI role: `pages/` (one per route: `<x>-page.tsx`, `new-<x>-page.tsx`, `edit-<x>-page.tsx`), `sections/`, `forms/`, `tables/`, `dialogs/`, `shared/` (used by two or more of the others). Create a sub-folder only once it has two files. A multi-step flow spreads across the buckets; it never gets its own folder. `hooks/`, `services/` and `utils/` stay flat, and so do `types.ts` and `constants.ts`.
+- `features/<x>/utils/` has fixed file roles: `<x>-format.ts` turns a value into display text and `<x>-form.ts` holds form↔API transforms. Enums and static option sets go in `features/<x>/constants.ts`, not in `utils/`. Never a vague `helpers.ts`; a util that fits none of these is in the wrong place.
+- Generic formatters (money, number, percent, date) live in `utils/format.ts`. Check it before writing another `Intl` wrapper.
 - Layout-only wrappers (no business meaning) go in `components/common/` when app-wide, otherwise in the feature with a layout suffix (`<x>-section.tsx`, `<x>-card-grid.tsx`).
 
 ### New features
 
-Copy `features/example/` and rename it. Build in this order: `types.ts` → `<x>.schema.ts` → `<x>.service.ts` → `<x>.keys.ts` → `hooks/use-<x>.ts` → components → route.
+Copy `features/example/` and rename it. Build in this order: `types.ts` and `constants.ts` → `<x>.schema.ts` → `<x>.service.ts` → `<x>.keys.ts` → `hooks/use-<x>.ts` → components → route.
 
 ---
 
@@ -116,19 +180,11 @@ export default function ThingCard({ thing }: IProps) { … }
 
 Hooks and services are the opposite: named `export function` declarations.
 
-**Server components are `async` and call services directly. Client components consume hooks:**
-
-```tsx
-const ExamplesPage = async () => {
-  const data = await getExamples();
-  return <ExamplesList items={data.items} />;
-};
-export default ExamplesPage;
-```
+**Client components consume hooks; hooks call services.** `lib/client/api-client.ts` is browser-only, so a Server Component never imports a service that uses it. A Server Component that needs backend data calls the backend from `lib/server/` (the template ships no such helper yet). `getMessages` and the locale cookie are the usual server-side reads.
 
 ### Body order
 
-Sections are never interleaved:
+Sections are never interleaved. One blank line separates one section from the next, and there is no blank line inside a section:
 
 1. props + trivial locals
 2. hooks: `useRef` → `useRouter` → `useForm` → query/custom hooks (a hook that seeds another goes first)
@@ -136,7 +192,7 @@ Sections are never interleaved:
 4. derived values
 5. `useEffect`
 6. handlers
-7. guards (early returns for loading, empty, error)
+7. guards: a page that loads data renders loading, empty, error and not found through `AppViewState` (§5); any other guard is an early return
 8. `return` JSX
 
 ```tsx
@@ -164,7 +220,7 @@ const TxnForm = (props: IProps) => {
 };
 ```
 
-When sections 3–6 pile up, lift sections 2–6 into a feature hook (`use-<x>-form.ts`) that returns a view object, keeping the same order inside the hook. The component becomes hook(s) → guards → JSX.
+When sections 3–6 pile up, lift sections 2–6 into a feature hook (`use-<x>-form.ts`, or `use-<x>-view.ts` for a data page) that returns a view object, keeping the same order inside the hook. The component becomes hook(s) → guards → JSX, with no derived consts left in the body.
 
 ### Pages and splitting
 
@@ -181,6 +237,11 @@ When sections 3–6 pile up, lift sections 2–6 into a feature hook (`use-<x>-f
 - a component has more than ~5 boolean props (redesign it with slots)
 
 **Don't over-split.** Extract a child only when it is reused, or its JSX passes ~15 lines _and_ it has its own logic, or it is an independent concept you can name. A one-line declarative field is not a component. When logic is the bloat, extract a hook, not more components.
+
+- A file that renders a single element (one `<div>`, `<h2>`, `<span>`, a skeleton block) is not a component: inline it, or use a shared one from `components/common/` (`AppSkeleton`, `AppKbd`, …).
+- A child used by exactly one parent with under ~15 lines of JSX folds into that parent, even when it has a name.
+- A page's named sections (`-head`, `-filters`, `-list`) stay their own files: the page is composition only, so a section's JSX never sits inline in a prop such as `head={…}`.
+- Rough budget: a feature with one or two pages has about 10–15 component files. More than that means something is over-split; check before adding.
 
 **Reuse before writing:**
 
@@ -226,7 +287,7 @@ Write new only when all three fail.
 }
 ```
 
-**A JSX callback is one readable expression.** Anything with transforms, branching or several steps becomes a named handler:
+**A JSX callback is one readable expression.** Anything with transforms, branching or several steps becomes a named handler. The same goes for callbacks inside an option object, such as the second argument of `mutate`: a function name, or a one-line arrow that calls a named function.
 
 ```tsx
 // ❌
@@ -234,6 +295,31 @@ onChange={value => setBudgets(current => current.map((b, i) => (i === month ? va
 // ✅
 onChange={value => setBudget(month, value)}
 ```
+
+```tsx
+// ❌
+create.mutate(input, {
+  onSuccess: () => {
+    toast.success(m.saved);
+    form.reset();
+  },
+  onError: error => {
+    toast.error(error.message);
+  },
+});
+// ✅
+const handleCreated = () => {
+  toast.success(m.saved);
+  form.reset();
+};
+const handleCreateError = (error: Error) => {
+  toast.error(error.message);
+};
+…
+create.mutate(input, { onSuccess: handleCreated, onError: handleCreateError });
+```
+
+Callbacks that belong to one page are passed at `mutate(…, { onSuccess, onError })` inside its handler. Callbacks every caller needs (invalidating a key prefix) live in the hook.
 
 **Prop values stay flat.** An inline JSX tree deeper than one element, or an inline object or array literal (especially behind a ternary), moves to a `const` or a component. A prop value that spans lines belongs in a const.
 
@@ -298,16 +384,18 @@ const SectionHeader = (props: IProps) => {
 
 ### Server state: TanStack Query
 
-Reads use `useQuery`; writes use `useMutation` and invalidate the affected key prefix. Never `useEffect` + `useState` for fetch state, and never refetch by hand.
+Reads use `useQuery`; writes use `useMutation` and invalidate the affected key prefix. Never `useEffect` + `useState` for fetch state, and never refetch by hand. `useQuery` and `useMutation` appear only in feature hooks, never in a component.
 
 ```ts
-export function useCreateExample() {
+export function useCreateExample(): TUseCreateExampleReturn {
   const queryClient = useQueryClient();
+
+  const handleCreated = () =>
+    queryClient.invalidateQueries({ queryKey: examplesKeys.lists() });
+
   return useMutation({
-    mutationFn: (input: TCreateExampleInput) => createExample(input),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: examplesKeys.lists() });
-    },
+    mutationFn: createExample,
+    onSuccess: handleCreated,
   });
 }
 ```
@@ -325,8 +413,32 @@ export const examplesKeys = {
 };
 ```
 
+- Derive data through the query's `select` (`select: response => sortExamplesByName(response.items)`), not by fetching the whole list in a component to sort or count it.
 - Toasts and navigation after a mutation go in its `onSuccess`, not in an effect that watches `isSuccess`.
-- Server Components may call services directly. Client components call hooks, and hooks call services. A hook never calls `apiClient` directly.
+- Client components call hooks, and hooks call services. A hook never calls `apiClient` directly.
+
+### Page view state
+
+A page that loads data has one state, a `TViewState<T>` (`types/view-state.ts`), built by the feature hook `use-<x>-view.ts` with `toViewState` (`utils/view-state.ts`) from its queries. The page renders it through `AppViewState` (`components/common/states/`): slots for loading, empty, not found and error, and `children: data => …` for ready. No pile of `isLoading` / `isError` / `isEmpty` booleans in the component.
+
+```tsx
+const ExamplePage = () => {
+  const common = useMessages(commonMessages);
+
+  const view = useExamplesView();
+
+  return (
+    <AppViewState view={view} loading={<AppStateMessage title={common.loading} />}>
+      {examples => <ExampleList examples={examples} />}
+    </AppViewState>
+  );
+};
+```
+
+- `AppViewState` is a `switch` on `view.kind`, and `@typescript-eslint/switch-exhaustiveness-check` keeps every switch over an enum complete. State rendering is a `switch`, not a map of renderers, because each state carries different data.
+- A map is fine for same-shaped lookups: labels, class names, icons by key.
+- The empty, not-found and load-error boxes are the common `AppStateMessage` and `AppLoadError`. A feature may keep a thin wrapper that only picks the title and renders `AppStateMessage`.
+- Collections assembled in a component body (`filter`, `map`, `new Map`, grouping) move to the view hook or to utils.
 
 ### Client state: Zustand, app-wide only
 
@@ -400,11 +512,13 @@ Legitimate effects:
 
 ## 8. API
 
-**`lib/api-client.ts` is the only network entry point.** Never call `fetch` in feature code.
+**`lib/client/api-client.ts` is the only network entry point.** Never call `fetch` in feature code.
 
 **The browser calls only relative `/api/*` URLs.** The BFF proxy `app/api/[...proxy]/route.ts` forwards them to the server-only `INTERNAL_API_URL`, so the backend URL never reaches the bundle.
 
-**Environment variables are validated with Zod in `lib/env.ts`.** A public `NEXT_PUBLIC_*` variable needs its own client schema.
+**Values from the URL are parsed by a Zod schema at the boundary** (route params, search params, redirect targets). No unexplained tricks such as `Array.isArray(x) ? x[0] : x`: the schema says what is accepted and what the fallback is.
+
+**Environment variables are validated with Zod in `lib/server/env.ts`** (the schema and `parseServerEnv` live in `lib/server/env.schema.ts`; `instrumentation.ts` imports it at boot, so a bad env stops the server). Code that reads secrets or server env lives in `lib/server/` and starts with `import "server-only"`. Code that needs the browser (`window`, `document`, TanStack Query, the BFF fetch) lives in `lib/client/` and starts with `import "client-only"`. A wrapper both sides use stays in `lib/` (`api-error.ts`); a pure helper goes to `utils/`. Never copy a module into both folders. Importing the wrong side fails the build. A public `NEXT_PUBLIC_*` variable needs its own client schema.
 
 **Services export named functions, never an object.** Each passes a Zod schema to `apiClient`:
 
@@ -416,8 +530,7 @@ export function getThingById(id: string) {
 ```
 
 - When a service grows many shapes, move them into a sibling `<x>.schema.ts` and re-export the `T*` types through `z.infer`.
-- Pass Next fetch options (`cache`, `next.revalidate`, `next.tags`) through `apiClient` for RSC caching.
-- `apiClient` throws `ApiError(status, message, body)` on non-2xx. Catch it at the boundary (a hook, server component or server action), handle the statuses you expect, and rethrow the rest:
+- `apiClient` throws `ApiError(status, message, body)` on non-2xx. Catch it at the boundary (a hook or a server action), handle the statuses you expect, and rethrow the rest:
 
   ```ts
   try {
@@ -458,7 +571,7 @@ export function getThingById(id: string) {
 ### Responsive
 
 - **Design desktop and mobile in the same pass,** never desktop first with a mobile patch later.
-- **The app shell owns page padding and content width.** Page and feature containers add no page-level `px-*`, `py-*`, `max-w-*` or `mx-auto`.
+- **The app shell owns page padding and content width.** Page and feature containers add no page-level `px-*`, `py-*`, `max-w-*` or `mx-auto`. The one exception is a page with no shell, which owns its own padding.
 - **Tables scroll horizontally and never clip** (don't defeat it with `overflow-hidden`). Data-heavy tables hide low-value columns below `sm`/`md`.
 - **Below `sm`,** multi-column form grids stack to one column, and toolbars and filter rows `flex-wrap`.
 - **Touch targets are at least ~44px.** The floor lives on the primitives (`min-h-11 sm:min-h-9` in `buttonVariants`, inputs, select triggers), not at call sites.
@@ -511,7 +624,7 @@ const m = await getMessages(accountsMessages); // server component
 | Files and folders           | kebab-case                     | `product-card.tsx`, `use-products.ts`, `cart.store.ts`                                         |
 | Components                  | PascalCase identifier          | `const ProductCard`                                                                            |
 | Role suffixes               | by file role                   | `<x>.service.ts`, `<x>.schema.ts`, `<x>.keys.ts`, `<x>.store.ts`, `use-<x>.ts`, `<x>-page.tsx` |
-| Object and prop shapes      | `interface I*`                 | `IProps`, `IOption`, `IPaginatedResponse<T>`                                                   |
+| Object and prop shapes      | `interface I*`                 | `IProps`, `IOption`, `IPageResponse<T>`                                                        |
 | Unions, entities, responses | `type T*`                      | `TThing`, `TThingsResponse` (via `z.infer`)                                                    |
 | Derived types               | by role                        | `TUseXReturn`, `TXState`, `TXResponse`, `TCreateXInput`                                        |
 | Variables                   | camelCase                      | `assetOptions`                                                                                 |
@@ -524,7 +637,7 @@ const m = await getMessages(accountsMessages); // server component
 ### Finite value sets are string enums
 
 ```ts
-// features/transactions/utils/transaction-constants.ts
+// features/transactions/constants.ts
 export enum TxnMode {
   Amount = "amount",
   Quantity = "quantity",
@@ -535,7 +648,7 @@ useState<"amount" | "quantity">("amount"); // ❌ literal union
 setMode("amount"); // ❌ won't compile, which is the point
 ```
 
-- An enum is PascalCase with string values and lives in the feature's `<x>-constants.ts`. A set shared across features lives in the domain's `types.ts`.
+- An enum is PascalCase with string values and lives in the feature's `constants.ts`. A set shared across features lives in `types/<topic>.constants.ts`.
 - Never use numeric enums, bare literal unions, magic strings in comparisons, or literal option `value`s.
 - An enum is nominal, so the compiler rejects a raw string where the enum is expected. A const object's type would accept `"amount"` and let magic strings back in.
 - Keep `erasableSyntaxOnly` off in `tsconfig`. It bans enums for Node's type stripping, which this stack doesn't use (Next compiles with SWC, tests run on Bun).
@@ -577,6 +690,7 @@ setMode("amount"); // ❌ won't compile, which is the point
 - `bun test`, with test files colocated next to what they test as `<x>.test.ts` / `<x>.test.tsx`.
 - Test names are plain sentences: `test("editing takes the saved transaction back out of the holding", …)`.
 - Keep logic in pure functions (transforms, formatters, constants) so it tests without React or fetch.
+- `server-only` and `client-only` throw outside a Next build, so `bunfig.toml` preloads `test-setup.ts`, which mocks both. Unit tests can then import `lib/server/*` and `lib/client/*` directly.
 
 ---
 
@@ -585,6 +699,8 @@ setMode("amount"); // ❌ won't compile, which is the point
 The config files are the source of truth: `eslint.config.mjs`, `.prettierrc`, `tsconfig.json`, `next.config.ts`, `lefthook.yml`, `components.json` and the `package.json` scripts. What they don't say:
 
 - **`bun lint` runs ESLint `--fix` and then Prettier,** because the `curly` autofix emits one-line braces (`{return 0;}`) that Prettier has to reflow.
+- **Typed routes need generated types.** `PageProps`, `LayoutProps`, `RouteContext` and typed `Link` hrefs come from `bunx next typegen`. Run it before `bunx tsc --noEmit` on a fresh checkout or after `rm -rf .next`; `bun run build` generates them itself.
+- **ESLint is typed** (`parserOptions.projectService`), which is what lets `switch-exhaustiveness-check` see enum members.
 - **Keep `no-implicit-coercion` off**: it enforces the opposite of the `!!x` rule.
 - **Import icons directly from `lucide-react`**; there's no central icon registry.
 - **Use `next/image` for images and the Metadata API for SEO.**
@@ -604,6 +720,7 @@ The config files are the source of truth: `eslint.config.mjs`, `.prettierrc`, `t
 | Tailwind class order                         | `tailwindcss/classnames-order`, `prettier-plugin-tailwindcss` |
 | `console.log`, `debugger`                    | `no-console`, `no-debugger`                                   |
 | Braceless `if`                               | `curly: all`                                                  |
+| Incomplete `switch` over an enum or union    | `@typescript-eslint/switch-exhaustiveness-check` (typed)      |
 | `Boolean(x)` conversions                     | `no-restricted-syntax`                                        |
 | Strictness, indexed access, implicit returns | `tsc`                                                         |
 | Formatting                                   | Prettier                                                      |

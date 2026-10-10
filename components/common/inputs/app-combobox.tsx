@@ -14,7 +14,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
-interface IComboboxOption {
+export interface IComboboxOption {
   value: string;
   label: string;
   /** Extra search keywords (e.g. an entity's name + code) when label alone

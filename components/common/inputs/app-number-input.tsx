@@ -3,9 +3,9 @@
 import { useId } from "react";
 
 import { cn } from "@/lib/utils";
+import { formatNumber, sanitizeNumber } from "@/utils/number-input";
 
 import { Input } from "../../ui/input";
-import { formatNumber, sanitizeNumber } from "./number-input-format";
 
 // AppNumberInput is the controlled, numeric-only sibling of AppInput for use
 // OUTSIDE react-hook-form (use FormNumberInput when inside RHF). It stores a

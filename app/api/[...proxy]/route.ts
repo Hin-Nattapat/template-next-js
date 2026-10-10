@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 
-import { env } from "@/lib/env";
+import { env } from "@/lib/server/env";
 
 // BFF proxy. Every request to /api/* on the FE origin is forwarded to the
 // internal backend at INTERNAL_API_URL: browser → Next (same-origin, cookie

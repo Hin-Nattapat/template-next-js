@@ -41,6 +41,8 @@ export default defineConfig([
         ecmaFeatures: {
           jsx: true,
         },
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     plugins: {
@@ -77,6 +79,9 @@ export default defineConfig([
           message: "Use !!x or a plain truthy check. `.filter(Boolean)` is fine.",
         },
       ],
+
+      // ---- Exhaustive switches over enums and unions (needs typed linting) ----
+      "@typescript-eslint/switch-exhaustiveness-check": "error",
 
       // ---- TypeScript Strict-ish ----
       "@typescript-eslint/consistent-type-imports": [

@@ -1,6 +1,6 @@
 import { cn } from "@/lib/utils";
 
-interface ISelectButtonOption<T extends string> {
+export interface ISelectButtonOption<T extends string> {
   value: T;
   label: string;
 }

@@ -1,18 +1,6 @@
 import { create } from "zustand";
 
-import type { IAlertConfig, IConfirmConfig, IDialogItem } from "@/types/dialog";
-
-export type TDialogState = {
-  dialog: IDialogItem | null;
-  alert: (title: string, message: string, config?: Partial<IAlertConfig>) => void;
-  confirm: (
-    title: string,
-    description: string,
-    config?: Partial<IConfirmConfig>,
-  ) => Promise<boolean>;
-  closeDialog: () => void;
-  handleConfirm: () => void;
-};
+import type { TDialogState } from "@/types/dialog";
 
 export const useDialogStore = create<TDialogState>((set, get) => ({
   dialog: null,
