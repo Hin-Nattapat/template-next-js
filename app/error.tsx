@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-
 import AppButton from "@/components/common/buttons/app-button";
 import { commonMessages } from "@/i18n/messages/common";
 import { useMessages } from "@/i18n/use-i18n";
@@ -15,11 +13,6 @@ const ErrorBoundary = (props: IProps) => {
   const { error, reset } = props;
 
   const m = useMessages(commonMessages);
-
-  // Logging is an outside-world side effect; it must run once per error, not per render.
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">

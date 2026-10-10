@@ -4,6 +4,7 @@ export const commonMessages = defineMessages(
   {
     loading: "Loading…",
     retry: "Try again",
+    loadError: "Could not load this.",
     goHome: "Go home",
     cancel: "Cancel",
     confirm: "Confirm",
@@ -20,6 +21,7 @@ export const commonMessages = defineMessages(
   {
     loading: "กำลังโหลด…",
     retry: "ลองอีกครั้ง",
+    loadError: "โหลดข้อมูลไม่สำเร็จ",
     goHome: "กลับหน้าแรก",
     cancel: "ยกเลิก",
     confirm: "ยืนยัน",

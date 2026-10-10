@@ -25,3 +25,15 @@ export interface IDialogItem {
   config: IAlertConfig | IConfirmConfig;
   resolve?: (value: boolean) => void;
 }
+
+export type TDialogState = {
+  dialog: IDialogItem | null;
+  alert: (title: string, message: string, config?: Partial<IAlertConfig>) => void;
+  confirm: (
+    title: string,
+    description: string,
+    config?: Partial<IConfirmConfig>,
+  ) => Promise<boolean>;
+  closeDialog: () => void;
+  handleConfirm: () => void;
+};

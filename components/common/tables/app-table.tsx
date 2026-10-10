@@ -14,24 +14,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import type { IAppTableColumn, TAppTableSortDir } from "@/types/table";
+import { compareValues } from "@/utils/table";
 
-export type TAppTableSortDir = "asc" | "desc";
-
-export interface IAppTableColumn<TRow> {
-  /** Stable identifier — used for the React key + sort tracking. */
-  key: string;
-  header: ReactNode;
-  cell: (row: TRow) => ReactNode;
-  align?: "left" | "right" | "center";
-  className?: string;
-  headerClassName?: string;
-  width?: string;
-  sortable?: boolean;
-  /** Required when sortable=true; lets the table extract a comparable value. */
-  sortAccessor?: (row: TRow) => string | number | Date | null | undefined;
-  /** Renders a ⓘ beside the header that explains the column on hover/focus. */
-  headerTooltip?: string;
-}
+import { ALIGN_CLASS } from "./app-table.constants";
 
 export interface IAppTableProps<TRow> {
   columns: IAppTableColumn<TRow>[];
@@ -50,31 +36,6 @@ export interface IAppTableProps<TRow> {
   sortBy?: string;
   sortDir?: TAppTableSortDir;
   onSortChange?: (key: string) => void;
-}
-
-const ALIGN_CLASS = {
-  left: "text-left",
-  center: "text-center",
-  right: "text-right",
-} as const;
-
-function compare(a: unknown, b: unknown): number {
-  if (a == null && b == null) {
-    return 0;
-  }
-  if (a == null) {
-    return -1;
-  }
-  if (b == null) {
-    return 1;
-  }
-  if (a instanceof Date && b instanceof Date) {
-    return a.getTime() - b.getTime();
-  }
-  if (typeof a === "number" && typeof b === "number") {
-    return a - b;
-  }
-  return String(a).localeCompare(String(b));
 }
 
 const AppTable = <TRow,>(props: IAppTableProps<TRow>) => {
@@ -111,7 +72,7 @@ const AppTable = <TRow,>(props: IAppTableProps<TRow>) => {
     }
     const accessor = column.sortAccessor;
     const dirMul = sortDir === "asc" ? 1 : -1;
-    return [...data].sort((a, b) => compare(accessor(a), accessor(b)) * dirMul);
+    return [...data].sort((a, b) => compareValues(accessor(a), accessor(b)) * dirMul);
   }, [controlled, data, columns, sortBy, sortDir]);
 
   const handleHeaderClick = (column: IAppTableColumn<TRow>) => {

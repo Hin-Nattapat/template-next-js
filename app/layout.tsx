@@ -2,14 +2,9 @@ import "./globals.css";
 
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import type { ReactNode } from "react";
 
-import AppDialogRoot from "@/components/common/dialogs/app-dialog-root";
-import ThemeProvider from "@/components/common/theme-provider";
-import { Toaster } from "@/components/ui/sonner";
 import { getLocale, getMessages } from "@/i18n/get-messages";
 import { metaMessages } from "@/i18n/messages/meta";
-import I18nProvider from "@/i18n/provider";
 
 import Providers from "./providers";
 
@@ -28,28 +23,16 @@ export async function generateMetadata(): Promise<Metadata> {
   return { title: m.title, description: m.description };
 }
 
-interface IProps {
-  children: ReactNode;
-}
-
 // Reading the locale cookie opts the tree out of static rendering; the error and
 // 404 pages can only speak the chosen language that way.
-const RootLayout = async (props: IProps) => {
+const RootLayout = async (props: LayoutProps<"/">) => {
   const { children } = props;
   const locale = await getLocale();
 
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Providers>
-            <I18nProvider initialLocale={locale}>
-              {children}
-              <Toaster />
-              <AppDialogRoot />
-            </I18nProvider>
-          </Providers>
-        </ThemeProvider>
+        <Providers initialLocale={locale}>{children}</Providers>
       </body>
     </html>
   );

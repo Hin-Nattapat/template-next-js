@@ -3,9 +3,9 @@
 import { useFormContext } from "react-hook-form";
 
 import { cn } from "@/lib/utils";
+import { formatNumber, sanitizeNumber } from "@/utils/number-input";
 
 import AppFormLabel from "../common/form/app-form-label";
-import { formatNumber, sanitizeNumber } from "../common/inputs/number-input-format";
 import { FormControl, FormField, FormItem, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 

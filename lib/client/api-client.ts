@@ -1,21 +1,11 @@
+import "client-only";
+
 import type { z } from "zod";
 
-import { ApiError } from "./api-error";
+import type { TBodyOptions, TRequestOptions } from "@/types/http";
+import { HttpStatus } from "@/types/http.constants";
 
-type TQueryValue = string | number | boolean | null | undefined;
-
-export type TRequestOptions = {
-  query?: Record<string, TQueryValue>;
-  headers?: HeadersInit;
-  signal?: AbortSignal;
-  // Next.js fetch caching options — only apply on the server.
-  cache?: RequestCache;
-  next?: { revalidate?: number | false; tags?: string[] };
-};
-
-export type TBodyOptions<TBody> = TRequestOptions & {
-  body?: TBody;
-};
+import { ApiError } from "../api-error";
 
 function buildUrl(path: string, query?: TRequestOptions["query"]): string {
   // Always use relative URLs. The browser resolves against the FE origin,
@@ -40,22 +30,20 @@ async function request<TResponse>(
   options: TBodyOptions<unknown> = {},
   schema?: z.ZodType<TResponse>,
 ): Promise<TResponse> {
-  const { body, query, headers, signal, cache, next } = options;
+  const { body, query, headers, signal } = options;
   const url = buildUrl(path, query);
 
   // FormData bodies need the browser to set Content-Type with the
   // multipart boundary; explicitly setting application/json there would
   // prevent that. Plain object bodies still serialize as JSON.
   const isFormData = typeof FormData !== "undefined" && body instanceof FormData;
-  const init: RequestInit & { next?: TRequestOptions["next"] } = {
+  const init: RequestInit = {
     method,
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...headers,
     },
     signal,
-    cache,
-    next,
     credentials: "same-origin",
   };
 
@@ -70,7 +58,7 @@ async function request<TResponse>(
     throw new ApiError(res.status, res.statusText || "Request failed", errorBody);
   }
 
-  if (res.status === 204) {
+  if (res.status === HttpStatus.NoContent) {
     return undefined as TResponse;
   }
 

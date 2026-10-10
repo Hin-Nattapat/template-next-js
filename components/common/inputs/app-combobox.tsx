@@ -13,14 +13,7 @@ import {
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-
-interface IComboboxOption {
-  value: string;
-  label: string;
-  /** Extra search keywords (e.g. an entity's name + code) when label alone
-   *  isn't enough — cmdk filters against this string in addition to label. */
-  keywords?: string;
-}
+import type { IComboboxOption } from "@/types/inputs";
 
 interface IProps {
   options: IComboboxOption[];

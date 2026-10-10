@@ -4,10 +4,3 @@ export interface IOption {
   label: string | React.ReactNode;
   [name: string]: string | number | React.ReactNode | boolean | undefined;
 }
-
-export interface IPaginatedResponse<T> {
-  items: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-}
