@@ -74,9 +74,9 @@ components/
   common/                    App* wrappers and app-wide components
     states/                  AppViewState, AppStateMessage, AppLoadError
   form-controls/             RHF-bound inputs (useFormContext)
-types/                       global.ts, pagination.ts, http.ts, http.constants.ts, view-state.ts, ...
+types/                       global.ts, pagination.ts, http.constants.ts, view-state.ts, ...
 schemas/                     pagination.schema.ts, ... (schemas two features share)
-utils/                       format.ts, view-state.ts, number-input.ts, ... (+ tests)
+utils/                       format.ts, view-state.ts, number-input.ts, pagination.ts, table.ts, ... (+ tests)
 hooks/                       cross-feature hooks only
 stores/                      Zustand: <x>.store.ts, app-wide state only
 i18n/                        locale, provider, messages/<x>.ts
@@ -88,9 +88,13 @@ lib/client/                  browser-only: api-client, query-client (`import "cl
 **Exceptions.**
 
 - `lib/utils.ts` (`cn`) stays where it is: shadcn's `components.json` points at it.
-- Constants or a schema owned by one `lib/` module or one `components/common/` component sit beside it, named `<module>.constants.ts` or `<module>.schema.ts` (`lib/client/query-client.constants.ts`, `lib/server/env.schema.ts`, `components/common/kbd/app-kbd.constants.ts`).
+- A `lib/` module keeps `<module>.constants.ts` (or `<module>.schema.ts`) beside it for constants other files share, such as a cookie name used by a route and the proxy (`lib/client/query-client.constants.ts`, `lib/server/env.schema.ts`). A lib module's own option and param types that callers pass in are exported from the module file.
 
-**A component or hook file holds only the component or hook.** `IProps`, a hook's own params interface and its `TUse<X>Return` are the only types that stay in it. Constants, schemas, other types and pure helpers go where the questions above send them.
+**Where the rule is strict and where it relaxes.**
+
+- **`features/`: strict.** Each feature keeps `types.ts` and `constants.ts` at its root and pure helpers in `utils/`. A component or hook file holds only the component or hook, plus `IProps`, a hook's own params interface and its `TUse<X>Return`. Constants, schemas, other types and pure helpers go where the questions above send them.
+- **`components/common/`: private things stay in the file.** A component may keep constants and types in its own file when only that file uses them (`ALIGN_CLASS`, `SIZE_OPTIONS`, cva variants, icon maps), or when they are types a caller needs to build the props (`IAppTableColumn`, `IComboboxOption`), which may be exported. They sit at the top of the file right after the imports, never between code. When another file needs one, it moves out by the two questions above. There is no `<component>.constants.ts` beside a component.
+- **Logic worth a test goes to `utils/`.** Any function with real logic (`pageWindow`) goes to a utils file with a colocated test, even with a single user. A plain lookup map or option list stays in the file that uses it.
 
 - Tailwind classes are not magic strings: write a className used once inline in the JSX; move classes to constants only as cva variants or when two or more components share them.
 - A file is named for its contents (`crypto.ts`, `keyboard.ts`), never `helpers.ts`, and a rule or value lives in exactly one place. A second copy is moved, not tolerated.

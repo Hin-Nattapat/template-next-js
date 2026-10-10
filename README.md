@@ -54,7 +54,7 @@ features/<x>/        everything a feature owns: components, hooks, services, uti
 components/          ui/ (shadcn), common/ (App* wrappers), form-controls/ (RHF inputs)
 i18n/                locale, provider, messages/<x>.ts
 types/ schemas/      shared types and constants, shared zod schemas
-utils/               pure helpers: format, view-state, number-input
+utils/               pure helpers: format, view-state, number-input, pagination
 lib/                 api-error, utils (shared)
 lib/server/          server-only: env
 lib/client/          browser-only: api-client, query-client
