@@ -23,14 +23,14 @@ Zoom out before you change a line, whether the session starts with the bug or yo
 
 ## Done means
 
-- `bun lint`, `bunx tsc --noEmit` and `bun test` pass.
+- `bun lint`, `bunx next typegen && bunx tsc --noEmit` and `bun test` pass. Typed routes need the generated types before `tsc` sees them.
 - UI changes are checked with real screenshots at mobile and desktop widths.
 
 ## Commits and pull requests
 
 - Conventional Commits with `init · feat · fix · refactor · chore · docs · style · test`. The subject is imperative and at most 90 characters; details go in the body.
 - Commit as often as you like while working. Before push and PR, consolidate to 4–6 commits, never more than 8, so the PR reads as a short story instead of a long tail:
-  - docs apart from code; code in dependency order (types/schema/service → hooks → components → route);
+  - docs apart from code; code in dependency order (types/constants/schema/service → hooks → components → route);
   - each commit passes lint and tests on its own;
   - every review fix folded into the commit it belongs to.
 - Before opening the PR: rebase onto the current remote base, then push with `--force-with-lease`.

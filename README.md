@@ -27,13 +27,14 @@ bun dev
 
 Then open <http://localhost:3000>. The home page links to `/example`, a working showcase of the form, dialog and toast patterns.
 
-| Command         | What it does                    |
-| --------------- | ------------------------------- |
-| `bun dev`       | Dev server                      |
-| `bun run build` | Production build                |
-| `bun start`     | Serve the production build      |
-| `bun lint`      | ESLint `--fix`, then Prettier   |
-| `bun test`      | The colocated `*.test.ts` files |
+| Command             | What it does                                                           |
+| ------------------- | ---------------------------------------------------------------------- |
+| `bun dev`           | Dev server                                                             |
+| `bun run build`     | Production build                                                       |
+| `bun start`         | Serve the production build                                             |
+| `bun lint`          | ESLint `--fix`, then Prettier                                          |
+| `bun test`          | The colocated `*.test.ts` files                                        |
+| `bunx tsc --noEmit` | Type check (run `bunx next typegen` first so typed routes are checked) |
 
 lefthook runs ESLint, Prettier and gitleaks on staged files at commit time, and `bun test` before push.
 
@@ -43,16 +44,22 @@ lefthook runs ESLint, Prettier and gitleaks on staged files at commit time, and 
 | ------------------ | -------------------------------------------------------------------------------------------- |
 | `INTERNAL_API_URL` | Backend base URL. Server-only: the BFF proxy reads it, and the browser bundle never sees it. |
 
+Server env vars are validated at boot (`instrumentation.ts`): a missing or invalid one stops `next dev` and `next start`. `bun run build` reads them too.
+
 ## Tour
 
 ```
 app/                 routes (thin), layouts, the BFF proxy at api/[...proxy]
-features/<x>/        everything a feature owns: components, hooks, services, utils, types
+features/<x>/        everything a feature owns: components, hooks, services, utils, types, constants
 components/          ui/ (shadcn), common/ (App* wrappers), form-controls/ (RHF inputs)
 i18n/                locale, provider, messages/<x>.ts
-lib/                 api-client, api-error, env, format, utils
-stores/ hooks/ types/
-docs/                STYLE.md and ARCHITECTURE.md
+types/ schemas/      shared types and constants, shared zod schemas
+utils/               pure helpers: format, view-state, number-input
+lib/                 api-error, utils (shared)
+lib/server/          server-only: env
+lib/client/          browser-only: api-client, query-client
+stores/ hooks/       app-wide state and cross-feature hooks
+docs/                STYLE.md (placement rule in §2) and ARCHITECTURE.md
 ```
 
 ## Starting a feature
