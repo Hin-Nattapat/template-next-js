@@ -59,7 +59,7 @@ lib/                 api-error, utils (shared)
 lib/server/          server-only: env
 lib/client/          browser-only: api-client, query-client
 stores/ hooks/       app-wide state and cross-feature hooks
-docs/                STYLE.md (placement rule in §2) and ARCHITECTURE.md
+docs/                STYLE.md (core, with task-specific reference links) and ARCHITECTURE.md
 ```
 
 ## Starting a feature
@@ -75,6 +75,6 @@ docs/                STYLE.md (placement rule in §2) and ARCHITECTURE.md
 
 | File                                           | For                                                                                          |
 | ---------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| [`docs/STYLE.md`](docs/STYLE.md)               | How code is written here: components, state, forms, styling, i18n, naming                    |
+| [`docs/STYLE.md`](docs/STYLE.md)               | Core conventions and links to task-specific component, data, UX and tooling references       |
 | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | How the pieces work: request path, server state, dialogs, i18n, theming                      |
 | [`AGENTS.md`](AGENTS.md)                       | What coding agents load every session: where to read, what "done" means, commit and PR rules |
