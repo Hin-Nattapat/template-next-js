@@ -1,42 +1,41 @@
 # AGENTS.md
 
-Next.js 16 frontend template: App Router, React 19, TypeScript strict, Tailwind v4, shadcn, TanStack Query, Bun. Clone it and add features by copying `features/example/`.
+Next.js frontend template. Talk to the human in Thai; write files, commits and PRs in English.
 
-Talk to the human in Thai. Write everything that lands in a file, a commit or a PR in English.
+## Before editing
 
-## Before you change code
+- **TS, TSX or CSS changes/reviews:** read [docs/STYLE.md](docs/STYLE.md) and the references triggered by the affected area. Claude Code loads the core through `.claude/rules/style.md`.
+- **Request path, providers, view states, dialogs, i18n or theming:** read [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), the current architecture source.
+- Use `features/example/` as the working implementation; inspect `package.json` for commands.
+- Inspect callers, tests and boundaries before editing; preserve unrelated user changes.
 
-- **Writing, changing or reviewing TS, TSX or CSS:** read [`docs/STYLE.md`](docs/STYLE.md) in full first. It is the single source for how code is written here. Claude Code loads it automatically through `.claude/rules/style.md`.
-- **Changing the request path (BFF proxy, `api-client`), providers, dialogs, i18n or theming:** read [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) first.
-- `features/example/` is the reference implementation; `package.json` lists every script.
+## Defects and scope
 
-## Fixing a defect
+Reproduce the defect with a failing check, trace it to its first incorrect value/behavior, identify the responsible owner and search for siblings. Explain the cause and fix briefly, then proceed within already-authorized scope. Fix the owner and turn the check green.
 
-Zoom out before you change a line, whether the session starts with the bug or you hit it mid-task:
+Get approval before expanding into a changed contract, schema or domain rule; use `/recipe` for that design work when available. A routine authorized fix does not need a second yes. Verify sibling fixes fit the agreed scope.
 
-1. **Reproduce it.** Get a check that goes red on this defect: a failing test, a curl, a script. The `diagnosing-bugs` skill has the full loop.
-2. **Find where it is born,** not where it shows. Trace the value or behaviour back through the layers in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) to the first place it goes wrong.
-3. **Name the owner:** the layer or module that should hold the rule that failed ([`docs/STYLE.md`](docs/STYLE.md) says where each kind of rule lives).
-4. **Look for siblings.** Search for the same pattern elsewhere; one cause often shows up in several places.
-5. **Tell the human in a few lines:** symptom → where it is born → owner → siblings → the fix you propose and at which level. Wait for a yes.
-6. **Fix it at the owner,** turning the red check green. If the fix changes a contract, a schema or a domain rule, or reaches the siblings, it is a job: start `/recipe`.
+## Completion
 
-## Done means
+- Run `bun lint`, `bunx next typegen && bunx tsc --noEmit` and `bun test`. Typed routes need generated types before `tsc`.
+- Check UI changes with real screenshots at mobile and desktop widths.
+- Report the result, checks run and material limitations. For documentation-only changes, check affected links and instruction consistency; application checks are unnecessary unless behavior/config also changed.
 
-- `bun lint`, `bunx next typegen && bunx tsc --noEmit` and `bun test` pass. Typed routes need the generated types before `tsc` sees them.
-- UI changes are checked with real screenshots at mobile and desktop widths.
+## Git and PRs
 
-## Commits and pull requests
+- Work on an existing feature branch. From `main`, fetch the remote default branch and create a feature branch from that ref, preserving local changes. This template's default is `main`; never commit or push directly to it.
+- Stage explicit paths so local settings stay out. Use Conventional Commits (`init`, `feat`, `fix`, `refactor`, `chore`, `docs`, `style`, `test`), with an imperative subject up to 90 characters.
+- Make a few complete, independently verifiable commits by concern. Separate docs from runtime code when independently reviewable; order dependent changes coherently and fold review fixes into the relevant commit. No fixed commit count.
+- Before the PR, rebase onto the current remote default branch; update the feature branch with `--force-with-lease` when rewriting pushed history.
+- Open PRs against the default branch. Merge with a merge commit (`gh pr merge --merge`). With multiple PRs, merge one, rebase the next onto the updated default, update with `--force-with-lease`, and wait for CI before merging it.
 
-- Conventional Commits with `init · feat · fix · refactor · chore · docs · style · test`. The subject is imperative and at most 90 characters; details go in the body.
-- Commit as often as you like while working. Before push and PR, consolidate to 4–6 commits, never more than 8, so the PR reads as a short story instead of a long tail:
-  - docs apart from code; code in dependency order (types/constants/schema/service → hooks → components → route);
-  - each commit passes lint and tests on its own;
-  - every review fix folded into the commit it belongs to.
-- Before opening the PR: rebase onto the current remote base, then push with `--force-with-lease`.
-- Stage by explicit path, so local files such as `.claude/settings.local.json` stay out.
-- Open PRs against the default branch, never against another feature branch.
-- Merge with a merge commit (`gh pr merge --merge`), not rebase or squash, so each PR stays visible as its own branch. With several PRs, merge one, rebase the next onto the updated default branch and push `--force-with-lease`, wait for CI, then merge it the same way.
+## Documentation
+
+Before adding Markdown, name its reader/task, entry point, unique knowledge, owner
+and update trigger. Extend an existing source when a new file would merely repeat
+code, config or another guide. Keep routine plans/audit reports in the existing
+issue/PR unless a durable record is needed. Closed-job records explain history;
+they do not override the current rule sheet. Links alone are not proof of use.
 
 ## brigade
 
